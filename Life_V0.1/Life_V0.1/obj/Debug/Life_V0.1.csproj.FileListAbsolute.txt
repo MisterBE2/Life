@@ -1,0 +1,9 @@
+D:\Projekty\Visual Studio\Gry\Life\Life_V0.1\Life_V0.1\bin\Debug\Life_V0.1.exe.config
+D:\Projekty\Visual Studio\Gry\Life\Life_V0.1\Life_V0.1\bin\Debug\Life_V0.1.exe
+D:\Projekty\Visual Studio\Gry\Life\Life_V0.1\Life_V0.1\bin\Debug\Life_V0.1.pdb
+D:\Projekty\Visual Studio\Gry\Life\Life_V0.1\Life_V0.1\obj\Debug\Life_V0.1.csprojResolveAssemblyReference.cache
+D:\Projekty\Visual Studio\Gry\Life\Life_V0.1\Life_V0.1\obj\Debug\Life_V0._1.Main.resources
+D:\Projekty\Visual Studio\Gry\Life\Life_V0.1\Life_V0.1\obj\Debug\Life_V0._1.Properties.Resources.resources
+D:\Projekty\Visual Studio\Gry\Life\Life_V0.1\Life_V0.1\obj\Debug\Life_V0.1.csproj.GenerateResource.Cache
+D:\Projekty\Visual Studio\Gry\Life\Life_V0.1\Life_V0.1\obj\Debug\Life_V0.1.exe
+D:\Projekty\Visual Studio\Gry\Life\Life_V0.1\Life_V0.1\obj\Debug\Life_V0.1.pdb
