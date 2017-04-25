@@ -1,9 +1,14 @@
-﻿using System.Drawing;
+﻿using System;
+using System.Collections.Generic;
+using System.Linq;
+using System.Text;
+using System.Threading.Tasks;
+using System.Drawing;
 using System.Windows.Forms;
 
-namespace RenderEngine_1._0
+namespace Life_V0._1
 {
-    public partial class RenderEngine
+    class TheEngine
     {
 
         // This class should give flicker free graphics. It is slow, but "works".
@@ -22,7 +27,7 @@ namespace RenderEngine_1._0
         /// Initialises "Render Engine"
         /// </summary>
         /// <param name="TargetForm">Targeted Form</param>
-        public RenderEngine(Form TargetForm)
+        public TheEngine(Form TargetForm)
         {
             target = TargetForm;
             UpdateGraphicsBuffer();
@@ -66,5 +71,6 @@ namespace RenderEngine_1._0
         {
             buffer.Render(targetGraphics);
         }
+
     }
 }
