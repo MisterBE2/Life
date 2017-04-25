@@ -22,6 +22,8 @@ namespace Life_V0._1
         static int WindowXShift = 19; // How much window border takse from working area
         static int WindowYShift = 39; // How much window border takse from working area
 
+        private bool bypass = false; // Bypasses internal timer
+
         TheEngine gBuf;
 
         #region FPS Counter
@@ -31,6 +33,14 @@ namespace Life_V0._1
         long lastFrames;
 
         Stopwatch gStopwatch = new Stopwatch();
+
+        #endregion
+
+        #region Tests
+
+        List<Point> points = new List<Point>();
+        Random F = new Random();
+        long z = 0;
 
         #endregion
 
@@ -97,9 +107,26 @@ namespace Life_V0._1
 
             labelFPS.Text = "FPS: " + (int)GetFPS();
 
+            #region Calculations
+
+            points.Clear();
+
+            for (int i = 0; i < z; i++)
+                points.Add(new Point(F.Next(Window.X, Window.Width), F.Next(Window.Y, Window.Height)));
+
+            #endregion
+
             gStopwatch.Stop();
             TimeSpan ts = gStopwatch.Elapsed;
             labelClaculations.Text = "C: " + ts.Milliseconds + " ms";
+
+           if (ts.Milliseconds > 1)
+                bypass = true;
+
+            if (bypass)
+                this.Refresh();
+
+            z += 100;
         }
 
         /// <summary>
@@ -111,7 +138,9 @@ namespace Life_V0._1
         {
             RefTimer.Stop();
             Claculations();
-            this.Refresh();
+
+            if (!bypass)
+                this.Refresh();
         } // If calculations take > 1ms, bypass this timer!
 
         /// <summary>
@@ -130,6 +159,32 @@ namespace Life_V0._1
             gBuf.buffer.Graphics.DrawRectangle(new Pen(Color.Gray, 1), Border); // Draws border rectangle
             //gBuf.buffer.Graphics.DrawEllipse(new Pen(Color.White, 1), Window.Width/2 - 25, Window.Height/2 - 25, 50, 50);
 
+            if (points.Count > 100)
+            {
+                Point[] p = new Point[50];
+                int step = 0;
+                int y = 0;
+
+                if (points.Count > 1000)
+                {
+                    for (int i = 0; i < points.Count; i++)
+                    {
+                        if (step >= points.Count / p.Length)
+                        {
+                            if (y < p.Length - 1)
+                                p[y] = points[i];
+
+                            step = 0;
+                            y++;
+                        }
+
+                        step++;
+                    }
+                }
+
+                gBuf.buffer.Graphics.DrawClosedCurve(new Pen(Color.White), p);
+            }
+
             #endregion
 
             gBuf.RenderBuffer(e.Graphics);
@@ -140,7 +195,10 @@ namespace Life_V0._1
             TimeSpan ts = gStopwatch.Elapsed;
             labelRender.Text = "R: " + ts.Milliseconds + " ms";
 
-            RefTimer.Start();
+            if (bypass)
+                Claculations();
+            else
+                RefTimer.Start();
         }
 
         #endregion
@@ -154,7 +212,7 @@ namespace Life_V0._1
         {
             gBuf.UpdateGraphicsBuffer();
             UpdateWindowSize();
-            UpdateBorder();        
+            UpdateBorder();
         }
     }
 }
