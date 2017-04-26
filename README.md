@@ -6,6 +6,8 @@ For this taks I'll use Microsoft Visual C# ant their Visual Studio. I'm begginer
 
 <p><h1> If you want to run the application vithout Visual Studio go to <b>Life_V0.1/Life_V0.1/bin/Debug/Life_V0.1.exe</b></h1>
 
+<center><img src="https://raw.githubusercontent.com/MisterBE2/Life/master/Life_progress.JPG" alt="The program"></center>
+
 <p><h2> Currently working on: <b>Creature needs</b></h2>
 
 <p><h1>Already done:</h1>
