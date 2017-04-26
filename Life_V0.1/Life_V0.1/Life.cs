@@ -40,7 +40,11 @@ namespace Life_V0._1
         #region Tests
 
         Creature TheGod;
-        bool outOfBoundry = false;
+
+        List<Creature> Creatures = new List<Creature>();
+
+        Random r1 = new Random(1);
+        Random f1 = new Random(100);
 
         #endregion
 
@@ -58,10 +62,37 @@ namespace Life_V0._1
 
             UpdateBorder();
 
-            TheGod = new Creature(new PointF(Window.Width/2, Window.Height/2));
+            for (int i = 0; i < 100; i++)
+            {
+
+                Creature tempCreature;
+
+                float x = (float)(r1.Next(-1000, 1000));
+                float y = (float)(r1.Next(-1000, 1000));
+                tempCreature = new Creature(
+                    new PointF(x, y),
+                    Color.FromArgb(r1.Next(255), r1.Next(255), r1.Next(255)),
+                    r1.Next(2, 20)
+                    );
+
+                Vector2 v1 = new Vector2(r1.Next(-100, 100) / 100f, r1.Next(-100, 100) / 100f);
+                Vector2 v2 = new Vector2(r1.Next(-100, 100) / 100f, r1.Next(-100, 100) / 100f);
+                Vector2 v3 = new Vector2(r1.Next(-100, 100) / 100f, r1.Next(-100, 100) / 100f);
+
+                tempCreature.AttachForce(v1);
+                tempCreature.AttachForce(v2);
+                tempCreature.AttachForce(v3);
+                //tempCreature.dispalyForces = true;
+                //tempCreature.forceMagnifier = 10;
+
+                Creatures.Add(tempCreature);
+            }
+
+            TheGod = new Creature(new PointF(Window.Width / 2, Window.Height / 2));
             TheGod.AttachForce(new Vector2(new PointF(0.1f, 0.2f)));
             TheGod.AttachForce(new Vector2(new PointF(-0.4f, 0.1f)));
-            TheGod.dispalyForces = true;
+            //TheGod.dispalyForces = true;
+            //TheGod.forceMagnifier = 10;
         }
 
         /// <summary>
@@ -118,36 +149,12 @@ namespace Life_V0._1
             #region Calculations
 
             TheGod.Move();
+            TheGod.CheckBoundry(Border, Window);
 
-            Rectangle hyst = new Rectangle();
-            hyst.Location = new Point((int)(Border.X + 0.2 * Border.X), (int)(Border.Y + 0.2 * Border.Y));
-            hyst.Size = new Size((int)(Border.Width - 2* (0.2 * Border.X)), (int)(Border.Height -2* ( 0.2 * Border.Y)));
-
-            if (!TheGod.IsColide(Border))
-                outOfBoundry = true;
-
-            if (TheGod.IsColide(hyst))
+            for (int i = 0; i < Creatures.Count; i++)
             {
-                outOfBoundry = false;
-                TheGod.boundryForce = new Vector2(0, 0);
-            }
-
-            if (!outOfBoundry)
-                TheGod.Color = Color.LightGreen;
-
-            else
-            {
-                TheGod.Color = Color.Red;
-
-                if (TheGod.Positon.X >= Window.Width / 2)
-                    TheGod.boundryForce.Add(new Vector2(-0.01f, 0));
-                else if (TheGod.Positon.X < Window.Height / 2)
-                    TheGod.boundryForce.Add(new Vector2(0.01f, 0));
-
-                if (TheGod.Positon.Y >= Window.Height / 2)
-                    TheGod.boundryForce.Add(new Vector2(0, -0.01f));
-                else if (TheGod.Positon.Y < Window.Width / 2)
-                    TheGod.boundryForce.Add(new Vector2(0, 0.01f));
+                Creatures[i].Move();
+                Creatures[i].CheckBoundry(Border, Window);
             }
 
             #endregion
@@ -189,6 +196,9 @@ namespace Life_V0._1
 
             TheGod.Draw(gBuf.buffer.Graphics); // Draws GOD Creature
 
+            for (int i = 0; i < Creatures.Count; i++)
+                Creatures[i].Draw(gBuf.buffer.Graphics);
+
             #endregion
 
             gBuf.RenderBuffer(e.Graphics);
@@ -215,8 +225,6 @@ namespace Life_V0._1
         {
             gBuf.UpdateGraphicsBuffer();
             UpdateWindowSize();
-
-            BorderSize = Window.Height / 2 - 100;
 
             UpdateBorder();
         }
@@ -250,6 +258,9 @@ namespace Life_V0._1
         {
             Point mousePos = this.PointToClient(Cursor.Position);
             TheGod.Positon = mousePos;
+
+            for (int i = 0; i < Creatures.Count; i++)
+                Creatures[i].Positon = mousePos;
         }
     }
 }

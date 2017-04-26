@@ -96,7 +96,7 @@ namespace Life_V0._1
             double y = Math.Ceiling(Math.Sin((Angle) * 0.01745329252) * Length);
 
             return new PointF((float)x, (float)y);
-        } // May cause some errors, due to not changing Lenght proportions on X anf Y axis
+        } // May cause some errors, due to not changing Lenght proportions on X and Y axis
 
         /// <summary>
         /// Calculates distance petween Start X and End X, Start Y, End Y
@@ -106,7 +106,21 @@ namespace Life_V0._1
             normal[0] = Start.X - End.X;
             normal[1] = Start.Y - End.Y;
         }
-    
+
+        /// <summary>
+        /// Draws vector to given buffer
+        /// </summary>
+        /// <param name="g">Targeted buffer</param>
+        /// <param name="c">Color of lines</param>
+        public void Draw(Graphics g, Color c)
+        {
+            PointF newEnd = new PointF(End.X + Math.Abs(Start.X), End.Y + Math.Abs(Start.Y));
+            g.DrawLine(new Pen(c), Start, newEnd);
+            g.DrawEllipse(new Pen(c), newEnd.X - 3, newEnd.Y - 3, 6, 6);
+        }
+
+        #region Operations
+
         /// <summary>
         /// Adds two vectors
         /// </summary>
@@ -154,15 +168,69 @@ namespace Life_V0._1
         }
 
         /// <summary>
-        /// Draws vector to given buffer
+        /// Divides vector list
         /// </summary>
-        /// <param name="g">Targeted buffer</param>
-        /// <param name="c">Color of lines</param>
-        public void Draw(Graphics g, Color c)
+        /// <param name="vectors">Vectors to add</param>
+        public void Div(Vector2[] vectors)
         {
-            PointF newEnd = new PointF(End.X + Math.Abs(Start.X), End.Y + Math.Abs(Start.Y));
-            g.DrawLine(new Pen(c), Start, newEnd);
-            g.DrawEllipse(new Pen(c), newEnd.X - 3, newEnd.Y - 3, 6, 6);
+            for (int i = 0; i < vectors.Length; i++)
+                End = new PointF((float)(End.X / vectors[i].End.X), (float)(End.Y / vectors[i].End.Y));
+        }
+
+        /// <summary>
+        /// Subtract vector by ammount
+        /// </summary>
+        /// <param name="ammount">Divide factor</param>
+        public void Sub(float ammount)
+        {
+            End = new PointF((float)(End.X - ammount), (float)(End.Y - ammount));
+        }
+
+        /// <summary>
+        /// Subtract vector by another vactor
+        /// </summary>
+        /// <param name="vector">Divide factor</param>
+        public void Sub(Vector2 vector)
+        {
+            End = new PointF((float)(End.X - vector.End.X), (float)(End.Y - vector.End.Y));
+        }
+
+        /// <summary>
+        /// Subtract vector list
+        /// </summary>
+        /// <param name="vectors">Vectors to add</param>
+        public void Sub(Vector2[] vectors)
+        {
+            for (int i = 0; i < vectors.Length; i++)
+                End = new PointF((float)(End.X - vectors[i].End.X), (float)(End.Y - vectors[i].End.Y));
+        }
+
+        /// <summary>
+        /// Multiply vector by ammount
+        /// </summary>
+        /// <param name="ammount">Divide factor</param>
+        public void Mul(float ammount)
+        {
+            End = new PointF((float)(End.X * ammount), (float)(End.Y * ammount));
+        }
+
+        /// <summary>
+        /// Multiply vector by another vactor
+        /// </summary>
+        /// <param name="vector">Divide factor</param>
+        public void Mul(Vector2 vector)
+        {
+            End = new PointF((float)(End.X * vector.End.X), (float)(End.Y * vector.End.Y));
+        }
+
+        /// <summary>
+        /// Multiply vector list
+        /// </summary>
+        /// <param name="vectors">Vectors to add</param>
+        public void Mul(Vector2[] vectors)
+        {
+            for (int i = 0; i < vectors.Length; i++)
+                End = new PointF((float)(End.X * vectors[i].End.X), (float)(End.Y * vectors[i].End.Y));
         }
 
         /// <summary>
@@ -170,7 +238,9 @@ namespace Life_V0._1
         /// </summary>
         public void Invert()
         {
-            End = new PointF(-End.X, - End.Y);
+            End = new PointF(-End.X, -End.Y);
         }
+
+        #endregion
     }
 }

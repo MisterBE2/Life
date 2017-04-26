@@ -14,11 +14,34 @@ namespace Life_V0._1
         private List<Color> fColors = new List<Color>(); // Stores colors of forces
         public Vector2 baseForce;
         public Vector2 boundryForce; // Force which prevents creature to go outside of border box
+        public bool outOfBoundry = false; // Tells if creaute is out of boundry (Border)
+
+        private static float hystAmmout = 0.6f; // Ammpont of hysteresis when creature comes out of border
+        private static float maxBorderSpeed = 0.1f; // Maximum speed when out of border
+        private static float minBorderSpeed = 0.001f; // Minimum speed when out of border
+        private static float maxDistanceOutOfBorder = 1000; // Distance after which maxBorderSpeed is triggered
 
         public bool dispalyForces = false; // Toogles drawing forces
-        public int forceMagnifier = 100; // Tels program how much it should extend forces vectors, so they are visible
+        public bool fastForce = true; // Toggles drawing more foce informations
+        public int forceMagnifier = 4; // Tels program how much it should extend forces vectors, so they are visible
+
+        private Color tempColor; // Stores color of creature when outo f boundry
 
         private Random colorR = new Random(); // Used to generate random colors
+
+        /// <summary>
+        /// Initialisez cresture
+        /// </summary>
+        /// <param name="x">X positon</param>
+        /// <param name="y">Y position</param>
+        public Creature(float x, float y)
+        {
+            Positon = new PointF(x, y);
+            Color = Color.White;
+            tempColor = Color;
+            Size = 20;
+            boundryForce = new Vector2(new PointF(0, 0));
+        }
 
         /// <summary>
         /// Initialisez cresture
@@ -28,8 +51,9 @@ namespace Life_V0._1
         {
             Positon = _Position;
             Color = Color.White;
+            tempColor = Color;
             Size = 20;
-            boundryForce = new Vector2(new PointF(0,0));
+            boundryForce = new Vector2(new PointF(0, 0));
         }
 
         /// <summary>
@@ -44,6 +68,7 @@ namespace Life_V0._1
             Color = _Color;
             Size = _Size;
             boundryForce = new Vector2(new PointF(0, 0));
+            tempColor = Color;
         }
 
         /// <summary>
@@ -71,28 +96,32 @@ namespace Life_V0._1
                 if (baseForce != null)
                 {
                     g.DrawLine(
-                        new Pen(Color.Red), 
+                        new Pen(Color.Red),
                         Positon,
-                        new PointF((float)(baseForce.End.X * forceMagnifier + Math.Abs(Positon.X)),
-                        (float)(baseForce.End.Y * forceMagnifier + Math.Abs(Positon.Y))));
+                        new PointF((float)(baseForce.End.X * forceMagnifier + Math.Abs(Positon.X - baseForce.End.X)),
+                        (float)(baseForce.End.Y * forceMagnifier + Math.Abs(Positon.Y - baseForce.End.Y))));
 
-                    g.DrawEllipse(
-                        new Pen(Color.Red), 
-                        (float)(baseForce.End.X * forceMagnifier + Math.Abs(Positon.X) - 3), 
-                        (float)(baseForce.End.Y * forceMagnifier + Math.Abs(Positon.Y) - 3), 6, 6);
+                    if (!fastForce)
+                        g.DrawEllipse(
+                            new Pen(Color.Red),
+                            (float)(baseForce.End.X * forceMagnifier + Math.Abs(Positon.X) - 3),
+                            (float)(baseForce.End.Y * forceMagnifier + Math.Abs(Positon.Y) - 3), 6, 6);
                 }
 
-                for (int i = 0; i < forces.Count; i++)
+                if (!fastForce)
                 {
-                    g.DrawLine(
-                        new Pen(fColors[i]),
-                        Positon, 
-                        new PointF((float)(forces[i].End.X * forceMagnifier + Math.Abs(Positon.X)),
-                        (float)(forces[i].End.Y * forceMagnifier + Math.Abs(Positon.Y))));
-                    g.DrawEllipse(
-                        new Pen(fColors[i]), 
-                        (float)(forces[i].End.X * forceMagnifier + Math.Abs(Positon.X) - 3), 
-                        (float)(forces[i].End.Y * forceMagnifier + Math.Abs(Positon.Y) - 3), 6, 6);
+                    for (int i = 0; i < forces.Count; i++)
+                    {
+                        g.DrawLine(
+                            new Pen(fColors[i]),
+                            Positon,
+                            new PointF((float)(forces[i].End.X * forceMagnifier + Math.Abs(Positon.X)),
+                            (float)(forces[i].End.Y * forceMagnifier + Math.Abs(Positon.Y))));
+                        g.DrawEllipse(
+                            new Pen(fColors[i]),
+                            (float)(forces[i].End.X * forceMagnifier + Math.Abs(Positon.X) - 3),
+                            (float)(forces[i].End.Y * forceMagnifier + Math.Abs(Positon.Y) - 3), 6, 6);
+                    }
                 }
             }
         }
@@ -115,6 +144,68 @@ namespace Life_V0._1
         public bool IsColide(Rectangle colBox)
         {
             return colBox.Contains((int)Positon.X, (int)Positon.Y);
+        }
+
+        /// <summary>
+        /// Moves creature back inside border
+        /// </summary>
+        /// <param name="Border">End of creatures world</param>
+        /// <param name="Window">Visible window working area</param>
+        public void CheckBoundry(Rectangle Border, Rectangle Window)
+        {
+            Rectangle hyst = new Rectangle();
+            hyst.Location = new Point(
+                (int)(Border.X + hystAmmout * Border.X),
+                (int)(Border.Y + hystAmmout * Border.Y));
+            hyst.Size = new Size(
+                (int)(Border.Width - 2 * (hystAmmout * Border.X)),
+                (int)(Border.Height - 2 * (hystAmmout * Border.Y)));
+
+            if (!IsColide(Border))
+                outOfBoundry = true;
+
+            if (IsColide(hyst))
+            {
+                outOfBoundry = false;
+
+                boundryForce = new Vector2(boundryForce.End.X / 1.05f, boundryForce.End.Y / 1.05f);
+
+                //if ((boundryForce.End.X > -0.01 && boundryForce.End.X < 0.01) || (boundryForce.End.Y > -0.01 && boundryForce.End.Y < 0.01))
+                    //boundryForce = new Vector2(0, 0);
+            }
+
+            if (!outOfBoundry)
+                Color = tempColor;
+
+            else
+            {
+                double dx = Math.Abs(Positon.X - Window.Width / 2);
+                double dy = Math.Abs(Positon.Y - Window.Height / 2);
+
+                double distance = Math.Sqrt(dx * dx + dy * dy);
+
+                double a = (minBorderSpeed - maxBorderSpeed) / (Window.Height / 2 - maxDistanceOutOfBorder);
+                double b = (Window.Height / 2) / (a * minBorderSpeed);
+
+                float speed = (float)(a * distance + b);
+
+                if (speed > maxBorderSpeed)
+                    speed = maxBorderSpeed;
+                else if (speed < minBorderSpeed)
+                    speed = minBorderSpeed;
+
+                Color = Color.Red;
+
+                if (Positon.X >= Window.Width / 2)
+                    boundryForce.Add(new Vector2(-speed, 0));
+                else if (Positon.X < Window.Height / 2)
+                    boundryForce.Add(new Vector2(speed, 0));
+
+                if (Positon.Y >= Window.Height / 2)
+                    boundryForce.Add(new Vector2(0, -speed));
+                else if (Positon.Y < Window.Width / 2)
+                    boundryForce.Add(new Vector2(0, speed));
+            }
         }
     }
 }
