@@ -40,10 +40,6 @@ namespace Life_V0._1
 
         #region Tests
 
-        List<Point> points = new List<Point>();
-        Random F = new Random();
-        long z = 0;
-
         #endregion
 
         public Main()
@@ -111,18 +107,11 @@ namespace Life_V0._1
 
             #region Calculations
 
-            points.Clear();
-
-            for (int i = 0; i < z; i++)
-                points.Add(new Point(F.Next(Window.X, Window.Width), F.Next(Window.Y, Window.Height)));
-
             #endregion
 
             gStopwatch.Stop();
             TimeSpan ts = gStopwatch.Elapsed;
             cTime = ts.Milliseconds;
-
-            z += 100;
         }
 
         /// <summary>
@@ -134,7 +123,7 @@ namespace Life_V0._1
         {
             RefTimer.Stop();
 
-            if(!backgroundWorkerCalculations.IsBusy)
+            if (!backgroundWorkerCalculations.IsBusy)
                 backgroundWorkerCalculations.RunWorkerAsync();
 
             //this.Refresh();
@@ -154,33 +143,6 @@ namespace Life_V0._1
             #region Buffer Insertions
 
             gBuf.buffer.Graphics.DrawRectangle(new Pen(Color.Gray, 1), Border); // Draws border rectangle
-            //gBuf.buffer.Graphics.DrawEllipse(new Pen(Color.White, 1), Window.Width/2 - 25, Window.Height/2 - 25, 50, 50);
-
-            if (points.Count > 100)
-            {
-                Point[] p = new Point[50];
-                int step = 0;
-                int y = 0;
-
-                if (points.Count > 1000)
-                {
-                    for (int i = 0; i < points.Count; i++)
-                    {
-                        if (step >= points.Count / p.Length)
-                        {
-                            if (y < p.Length - 1)
-                                p[y] = points[i];
-
-                            step = 0;
-                            y++;
-                        }
-
-                        step++;
-                    }
-                }
-
-                gBuf.buffer.Graphics.DrawClosedCurve(new Pen(Color.White), p);
-            }
 
             #endregion
 

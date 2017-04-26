@@ -10,7 +10,6 @@ namespace Life_V0._1
 {
     class TheEngine
     {
-
         // This class should give flicker free graphics. It is slow, but "works".
 
         /// <summary>
