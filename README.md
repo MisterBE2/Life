@@ -1,8 +1,8 @@
 # Life
-<p><b>Windows Forms C# based algoritm, which dewelops "life".</b>
+<p><b>Windows Forms C# based algoritm, which develops "life".</b>
 
 <p>I watched a <a href="https://youtu.be/qzFlnX-z38U">stream</a> of <b>The Codin Train</b>, it inspired me! I want to create something simillar. 
-For this taks I'll use Microsoft Visual C# ant their Visual Studio. I'm begginer at coding and genetic algorithms, so don't expect something amusing :)
+For this task I'll use Microsoft Visual C# and their Visual Studio. I'm begginer at coding and genetic algorithms, so don't expect something amusing :)
 
 <p><h1> If you want to run the application without Visual Studio go to <b>Life_V0.1/Life_V0.1/bin/Debug/Life_V0.1.exe</b></h1>
 
@@ -22,7 +22,7 @@ For this taks I'll use Microsoft Visual C# ant their Visual Studio. I'm begginer
 <p><h1>To do:</h1>
 <ul>
   <li>World</li>
-  <li>Creatur mind</li>
+  <li>Creature mind</li>
   <li>Creature needs</li>
   <li>"DNA"</li>
 </ul>
