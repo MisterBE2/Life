@@ -34,6 +34,8 @@ namespace Life_V0._1
 
         Stopwatch gStopwatch = new Stopwatch();
 
+        int fps, cTime, rTime;
+
         #endregion
 
         #region Tests
@@ -105,7 +107,7 @@ namespace Life_V0._1
             gStopwatch.Reset();
             gStopwatch.Start();
 
-            labelFPS.Text = "FPS: " + (int)GetFPS();
+            fps = (int)GetFPS();
 
             #region Calculations
 
@@ -118,13 +120,7 @@ namespace Life_V0._1
 
             gStopwatch.Stop();
             TimeSpan ts = gStopwatch.Elapsed;
-            labelClaculations.Text = "C: " + ts.Milliseconds + " ms";
-
-           if (ts.Milliseconds > 1)
-                bypass = true;
-
-            if (bypass)
-                this.Refresh();
+            cTime = ts.Milliseconds;
 
             z += 100;
         }
@@ -137,11 +133,12 @@ namespace Life_V0._1
         private void RefTimer_Tick(object sender, EventArgs e)
         {
             RefTimer.Stop();
-            Claculations();
 
-            if (!bypass)
-                this.Refresh();
-        } // If calculations take > 1ms, bypass this timer!
+            if(!backgroundWorkerCalculations.IsBusy)
+                backgroundWorkerCalculations.RunWorkerAsync();
+
+            //this.Refresh();
+        }
 
         /// <summary>
         /// Renders everything
@@ -194,11 +191,10 @@ namespace Life_V0._1
             gStopwatch.Stop();
             TimeSpan ts = gStopwatch.Elapsed;
             labelRender.Text = "R: " + ts.Milliseconds + " ms";
+            labelFPS.Text = "FPS: " + fps;
+            labelClaculations.Text = "C: " + cTime + " ms";
 
-            if (bypass)
-                Claculations();
-            else
-                RefTimer.Start();
+            RefTimer.Start();
         }
 
         #endregion
@@ -213,6 +209,26 @@ namespace Life_V0._1
             gBuf.UpdateGraphicsBuffer();
             UpdateWindowSize();
             UpdateBorder();
+        }
+
+        /// <summary>
+        /// Calculates all thing on separate thread
+        /// </summary>
+        /// <param name="sender"></param>
+        /// <param name="e"></param>
+        private void backgroundWorkerCalculations_DoWork(object sender, DoWorkEventArgs e)
+        {
+            Claculations();
+        }
+
+        /// <summary>
+        /// Updates frame when calculations are done
+        /// </summary>
+        /// <param name="sender"></param>
+        /// <param name="e"></param>
+        private void backgroundWorkerCalculations_RunWorkerCompleted(object sender, RunWorkerCompletedEventArgs e)
+        {
+            this.Refresh();
         }
     }
 }
