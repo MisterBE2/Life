@@ -13,7 +13,7 @@ For this taks I'll use Microsoft Visual C# ant their Visual Studio. I'm begginer
   <li>"Render Engine"</li>
   <li>Some Optymisation</li>
   <li>The Creature</li>
-  <li>Endo of the world</li>
+  <li>End of the world</li>
   <li>Vector based moving system</li>
  </ul>
   
