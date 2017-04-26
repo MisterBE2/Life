@@ -4,7 +4,7 @@
 <p>I watched a <a href="https://youtu.be/qzFlnX-z38U">stream</a> of <b>The Codin Train</b>, it inspired me! I want to create something simillar. 
 For this taks I'll use Microsoft Visual C# ant their Visual Studio. I'm begginer at coding and genetic algorithms, so don't expect something amusing :)
 
-<p><h1> If you want to just run the aplication vithout Visual Studio go to <b>Life_V0.1/Life_V0.1/bin/Debug/Life_V0.1.exe</b></h1>
+<p><h1> If you want to run the application vithout Visual Studio go to <b>Life_V0.1/Life_V0.1/bin/Debug/Life_V0.1.exe</b></h1>
 
 <p><h2> Currently Working on: <b>Creature needs</b></h2>
 
