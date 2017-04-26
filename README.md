@@ -6,10 +6,14 @@ For this taks I'll use Microsoft Visual C# ant their Visual Studio. I'm begginer
 
 
 <p><h1>Alredy done:</h1>
+<ul>
   <il>"Render Engine"</il>
   <il>Some Optymisation</il>
+ </ul>
   
 <p><h1>To do:</h1>
+<ul>
   <il>The Creature</il>
   <il>World</il>
   <il>"DNA"</il>
+</ul>
