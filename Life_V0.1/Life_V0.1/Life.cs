@@ -13,14 +13,13 @@ namespace Life_V0._1
 {
     public partial class Main : Form
     {
-
-        public Rectangle Border { get; set; } // Declares border of life (gray square near edges)
-        public int BorderSize { get; set; }
-
-        public Rectangle Window { get; set; } // Stores working window size
+        public Rectangle Window; // Stores working window size
 
         static int WindowXShift = 19; // How much window border takse from working area
         static int WindowYShift = 39; // How much window border takse from working area
+
+        public Rectangle Border; // Declares border of life (gray square near edges)
+        public int BorderSize = 100; // Size of border
 
         private bool bypass = false; // Bypasses internal timer
 
@@ -40,6 +39,9 @@ namespace Life_V0._1
 
         #region Tests
 
+        Creature TheGod;
+        bool outOfBoundry = false;
+
         #endregion
 
         public Main()
@@ -54,8 +56,12 @@ namespace Life_V0._1
 
             #endregion
 
-            BorderSize = 50;
             UpdateBorder();
+
+            TheGod = new Creature(new PointF(Window.Width/2, Window.Height/2));
+            TheGod.AttachForce(new Vector2(new PointF(0.1f, 0.2f)));
+            TheGod.AttachForce(new Vector2(new PointF(-0.4f, 0.1f)));
+            TheGod.dispalyForces = true;
         }
 
         /// <summary>
@@ -82,7 +88,9 @@ namespace Life_V0._1
         /// </summary>
         public void UpdateWindowSize()
         {
-            Window = new Rectangle(0, 0, this.Width - WindowXShift, this.Height - WindowYShift);
+            Window = new Rectangle();
+            Window.Location = new Point(0, 0);
+            Window.Size = new Size(this.Width - WindowXShift, this.Height - WindowYShift);
         }
 
         /// <summary>
@@ -90,7 +98,9 @@ namespace Life_V0._1
         /// </summary>
         public void UpdateBorder()
         {
-            Border = new Rectangle(BorderSize, BorderSize, Window.Width - BorderSize * 2, Window.Height - BorderSize * 2);
+            Border = new Rectangle();
+            Border.Location = new Point(BorderSize, BorderSize);
+            Border.Size = new Size(Window.Width - BorderSize * 2, Window.Height - BorderSize * 2);
         }
 
         #region Rendering
@@ -106,6 +116,39 @@ namespace Life_V0._1
             fps = (int)GetFPS();
 
             #region Calculations
+
+            TheGod.Move();
+
+            Rectangle hyst = new Rectangle();
+            hyst.Location = new Point((int)(Border.X + 0.2 * Border.X), (int)(Border.Y + 0.2 * Border.Y));
+            hyst.Size = new Size((int)(Border.Width - 2* (0.2 * Border.X)), (int)(Border.Height -2* ( 0.2 * Border.Y)));
+
+            if (!TheGod.IsColide(Border))
+                outOfBoundry = true;
+
+            if (TheGod.IsColide(hyst))
+            {
+                outOfBoundry = false;
+                TheGod.boundryForce = new Vector2(0, 0);
+            }
+
+            if (!outOfBoundry)
+                TheGod.Color = Color.LightGreen;
+
+            else
+            {
+                TheGod.Color = Color.Red;
+
+                if (TheGod.Positon.X >= Window.Width / 2)
+                    TheGod.boundryForce.Add(new Vector2(-0.01f, 0));
+                else if (TheGod.Positon.X < Window.Height / 2)
+                    TheGod.boundryForce.Add(new Vector2(0.01f, 0));
+
+                if (TheGod.Positon.Y >= Window.Height / 2)
+                    TheGod.boundryForce.Add(new Vector2(0, -0.01f));
+                else if (TheGod.Positon.Y < Window.Width / 2)
+                    TheGod.boundryForce.Add(new Vector2(0, 0.01f));
+            }
 
             #endregion
 
@@ -144,6 +187,8 @@ namespace Life_V0._1
 
             gBuf.buffer.Graphics.DrawRectangle(new Pen(Color.Gray, 1), Border); // Draws border rectangle
 
+            TheGod.Draw(gBuf.buffer.Graphics); // Draws GOD Creature
+
             #endregion
 
             gBuf.RenderBuffer(e.Graphics);
@@ -170,6 +215,9 @@ namespace Life_V0._1
         {
             gBuf.UpdateGraphicsBuffer();
             UpdateWindowSize();
+
+            BorderSize = Window.Height / 2 - 100;
+
             UpdateBorder();
         }
 
@@ -191,6 +239,17 @@ namespace Life_V0._1
         private void backgroundWorkerCalculations_RunWorkerCompleted(object sender, RunWorkerCompletedEventArgs e)
         {
             this.Refresh();
+        }
+
+        /// <summary>
+        /// This is for debbuging, it sets The God position, based on mouse positon
+        /// </summary>
+        /// <param name="sender"></param>
+        /// <param name="e"></param>
+        private void Main_MouseClick(object sender, MouseEventArgs e)
+        {
+            Point mousePos = this.PointToClient(Cursor.Position);
+            TheGod.Positon = mousePos;
         }
     }
 }

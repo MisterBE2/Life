@@ -1,8 +1,4 @@
 ﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 using System.Drawing;
 
 namespace Life_V0._1
@@ -15,6 +11,20 @@ namespace Life_V0._1
         public double Angle { get; set; } // Angle from +X axis
 
         public double[] normal = new double[2]; // Stores delat x an Y between start and end - [0] is always x, [1] is always y
+
+        /// <summary>
+        /// Defines basic vector values
+        /// </summary>
+        /// <param name="x">X position</param>
+        /// <param name="y">Y position</param>
+        public Vector2(float x, float y)
+        {
+            Start = new PointF(0, 0);
+            End = new PointF(x, y);
+            Angle = GetAngle();
+            Length = GetLength();
+            GetNormal();
+        }
 
         /// <summary>
         /// Defines basic vector values
@@ -82,7 +92,7 @@ namespace Life_V0._1
         /// <returns></returns>
         public PointF GetEndPoint()
         {
-            double x = Math.Ceiling( Math.Cos((Angle) * 0.01745329252) * Length);
+            double x = Math.Ceiling(Math.Cos((Angle) * 0.01745329252) * Length);
             double y = Math.Ceiling(Math.Sin((Angle) * 0.01745329252) * Length);
 
             return new PointF((float)x, (float)y);
@@ -100,10 +110,47 @@ namespace Life_V0._1
         /// <summary>
         /// Adds two vectors
         /// </summary>
-        /// <param name="vector"></param>
+        /// <param name="vector">Vector to add</param>
         public void Add(Vector2 vector)
         {
             End = new PointF((float)(End.X + vector.End.X), (float)(End.Y + vector.End.Y));
+        }
+
+        /// <summary>
+        /// Adds constant to vector
+        /// </summary>
+        /// <param name="ammount">Constant</param>
+        public void Add(float ammount)
+        {
+            End = new PointF((float)(End.X + ammount), (float)(End.Y + ammount));
+        }
+
+        /// <summary>
+        /// Adds vector list
+        /// </summary>
+        /// <param name="vectors">Vectors to add</param>
+        public void Add(Vector2[] vectors)
+        {
+            for (int i = 0; i < vectors.Length; i++)
+                End = new PointF((float)(End.X + vectors[i].End.X), (float)(End.Y + vectors[i].End.Y));
+        }
+
+        /// <summary>
+        /// Divides vector by ammount
+        /// </summary>
+        /// <param name="ammount">Divide factor</param>
+        public void Div(float ammount)
+        {
+            End = new PointF((float)(End.X / ammount), (float)(End.Y / ammount));
+        }
+
+        /// <summary>
+        /// Divides vector by another vactor
+        /// </summary>
+        /// <param name="vector">Divide factor</param>
+        public void Div(Vector2 vector)
+        {
+            End = new PointF((float)(End.X / vector.End.X), (float)(End.Y / vector.End.Y));
         }
 
         /// <summary>
@@ -118,5 +165,12 @@ namespace Life_V0._1
             g.DrawEllipse(new Pen(c), newEnd.X - 3, newEnd.Y - 3, 6, 6);
         }
 
+        /// <summary>
+        /// Inverts vestor
+        /// </summary>
+        public void Invert()
+        {
+            End = new PointF(-End.X, - End.Y);
+        }
     }
 }
