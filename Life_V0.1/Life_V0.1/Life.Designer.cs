@@ -34,6 +34,7 @@
             this.labelFPS = new System.Windows.Forms.Label();
             this.labelRender = new System.Windows.Forms.Label();
             this.labelClaculations = new System.Windows.Forms.Label();
+            this.backgroundWorkerCalculations = new System.ComponentModel.BackgroundWorker();
             this.SuspendLayout();
             // 
             // RefTimer
@@ -68,6 +69,11 @@
             this.labelClaculations.TabIndex = 3;
             this.labelClaculations.Text = "C: ";
             // 
+            // backgroundWorkerCalculations
+            // 
+            this.backgroundWorkerCalculations.DoWork += new System.ComponentModel.DoWorkEventHandler(this.backgroundWorkerCalculations_DoWork);
+            this.backgroundWorkerCalculations.RunWorkerCompleted += new System.ComponentModel.RunWorkerCompletedEventHandler(this.backgroundWorkerCalculations_RunWorkerCompleted);
+            // 
             // Main
             // 
             this.AutoScaleDimensions = new System.Drawing.SizeF(7F, 17F);
@@ -97,6 +103,7 @@
         private System.Windows.Forms.Label labelFPS;
         private System.Windows.Forms.Label labelRender;
         private System.Windows.Forms.Label labelClaculations;
+        private System.ComponentModel.BackgroundWorker backgroundWorkerCalculations;
     }
 }
 
