@@ -13,17 +13,16 @@ namespace Life_V0._1
 {
     public partial class Main : Form
     {
-        public Rectangle Window; // Stores working window size
+        public static Rectangle Window; // Stores working window size
 
-        static int WindowXShift = 19; // How much window border takse from working area
-        static int WindowYShift = 39; // How much window border takse from working area
+        public static int WindowXShift = 19; // How much window border takse from working area
+        public static int WindowYShift = 39; // How much window border takse from working area
 
-        public Rectangle Border; // Declares border of life (gray square near edges)
-        public int BorderSize = 100; // Size of border
-
-        private bool bypass = false; // Bypasses internal timer
+        public static Rectangle Border; // Declares border of life (gray square near edges)
+        public int BorderSize = 10; // Size of border
 
         TheEngine gBuf;
+        List<PointOfInterest> GlobalPointOfInterest = new List<PointOfInterest>();
 
         #region FPS Counter
 
@@ -39,12 +38,13 @@ namespace Life_V0._1
 
         #region Tests
 
-        Creature TheGod;
-
         List<Creature> Creatures = new List<Creature>();
 
-        Random r1 = new Random(1);
+        Random r1 = new Random(50);
         Random f1 = new Random(100);
+
+        Vector tempV1 = new Vector(0, 0);
+        Vector tempV2 = new Vector(0, 0);
 
         #endregion
 
@@ -62,37 +62,32 @@ namespace Life_V0._1
 
             UpdateBorder();
 
-            for (int i = 0; i < 100; i++)
+            for (int i = 0; i < 1000; i++)
             {
 
+                float x = (float)(r1.Next(0, Window.Width));
+                float y = (float)(r1.Next(0, Window.Height));
+
+                GlobalPointOfInterest.Add(new PointOfInterest(new PointF(x, y), (float)(r1.NextDouble())));
+            }
+
+            for (int i = 0; i < 1; i++)
+            {
                 Creature tempCreature;
 
-                float x = (float)(r1.Next(-1000, 1000));
-                float y = (float)(r1.Next(-1000, 1000));
+                float x = Window.Width/2;
+                float y = Window.Height/2;
                 tempCreature = new Creature(
                     new PointF(x, y),
                     Color.FromArgb(r1.Next(255), r1.Next(255), r1.Next(255)),
-                    r1.Next(2, 20)
+                    r1.Next(7, 20)
                     );
 
-                Vector2 v1 = new Vector2(r1.Next(-100, 100) / 100f, r1.Next(-100, 100) / 100f);
-                Vector2 v2 = new Vector2(r1.Next(-100, 100) / 100f, r1.Next(-100, 100) / 100f);
-                Vector2 v3 = new Vector2(r1.Next(-100, 100) / 100f, r1.Next(-100, 100) / 100f);
-
-                tempCreature.AttachForce(v1);
-                tempCreature.AttachForce(v2);
-                tempCreature.AttachForce(v3);
-                //tempCreature.dispalyForces = true;
-                //tempCreature.forceMagnifier = 10;
+                tempCreature.MaxSpeed = (float)(r1.NextDouble() * 2);
+                tempCreature.InterestingPoints = GlobalPointOfInterest;
 
                 Creatures.Add(tempCreature);
             }
-
-            TheGod = new Creature(new PointF(Window.Width / 2, Window.Height / 2));
-            TheGod.AttachForce(new Vector2(new PointF(0.1f, 0.2f)));
-            TheGod.AttachForce(new Vector2(new PointF(-0.4f, 0.1f)));
-            //TheGod.dispalyForces = true;
-            //TheGod.forceMagnifier = 10;
         }
 
         /// <summary>
@@ -148,13 +143,10 @@ namespace Life_V0._1
 
             #region Calculations
 
-            TheGod.Move();
-            TheGod.CheckBoundry(Border, Window);
-
             for (int i = 0; i < Creatures.Count; i++)
             {
+                Creatures[i].CheckOutOfBorder(Border);
                 Creatures[i].Move();
-                Creatures[i].CheckBoundry(Border, Window);
             }
 
             #endregion
@@ -193,11 +185,27 @@ namespace Life_V0._1
             #region Buffer Insertions
 
             gBuf.buffer.Graphics.DrawRectangle(new Pen(Color.Gray, 1), Border); // Draws border rectangle
+            //gBuf.buffer.Graphics.DrawEllipse(new Pen(Color.Gray), GlobalPointOfInterest.X - 3, GlobalPointOfInterest.Y - 3, 6, 6);
 
-            TheGod.Draw(gBuf.buffer.Graphics); // Draws GOD Creature
+            for (int z = 0; z < Creatures[0].InterestingPoints.Count; z++)
+            {
+                gBuf.buffer.Graphics.DrawEllipse(new Pen(Color.FromArgb(222, 0, 255), 2), Creatures[0].InterestingPoints[z].Point.X - 3, Creatures[0].InterestingPoints[z].Point.Y - 3, 6, 6);
+
+                string force = string.Format("{0:0.00}", Creatures[0].InterestingPoints[z].Force);
+
+                /*
+                gBuf.buffer.Graphics.DrawString("F = " + force,
+                new Font("Arial", 7),
+                new SolidBrush(Color.White),
+                Creatures[0].InterestingPoints[z].Point.X, Creatures[0].InterestingPoints[z].Point.Y, 
+                new StringFormat());
+                */
+            }
 
             for (int i = 0; i < Creatures.Count; i++)
+            {
                 Creatures[i].Draw(gBuf.buffer.Graphics);
+            }
 
             #endregion
 
@@ -257,10 +265,29 @@ namespace Life_V0._1
         private void Main_MouseClick(object sender, MouseEventArgs e)
         {
             Point mousePos = this.PointToClient(Cursor.Position);
-            TheGod.Positon = mousePos;
+            GlobalPointOfInterest.Add(new PointOfInterest(mousePos, (float)(r1.NextDouble())));
 
-            for (int i = 0; i < Creatures.Count; i++)
-                Creatures[i].Positon = mousePos;
+            if (e.Button == MouseButtons.Left)
+            {
+                for (int i = 0; i < Creatures.Count; i++)
+                {
+                    Creatures[i].InterestingPoints = GlobalPointOfInterest;
+                }
+            }
+            else if (e.Button == MouseButtons.Right)
+            {
+                for (int i = 0; i < Creatures.Count; i++)
+                {
+                    Creatures[i].Position = mousePos;
+                }
+            }
+            else if (e.Button == MouseButtons.Middle)
+            {
+                for (int i = 0; i < Creatures.Count; i++)
+                {
+                    Creatures[i].ClearPointsOfInterest();
+                }
+            }
         }
     }
 }

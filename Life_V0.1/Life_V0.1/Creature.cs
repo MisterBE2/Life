@@ -6,206 +6,212 @@ namespace Life_V0._1
 {
     class Creature
     {
-        public PointF Positon { get; set; } // Stores position of the Creature
-        public Color Color { get; set; } // Stores creature color
-        public float Size { get; set; } // Creture size
+        public PointF Position { get; set; }
+        public float Size { get; set; }
+        public Color Color { get; set; }
+        public float Health { get; set; }
+        public float Energy { get; set; }
+        public float MaxSpeed = 5;
+        public float MinSpeed = 1f;
 
-        public List<Vector2> forces = new List<Vector2>(); // Stores all movment vestors
-        private List<Color> fColors = new List<Color>(); // Stores colors of forces
-        public Vector2 baseForce;
-        public Vector2 boundryForce; // Force which prevents creature to go outside of border box
-        public bool outOfBoundry = false; // Tells if creaute is out of boundry (Border)
+        public List<PointOfInterest> InterestingPoints = new List<PointOfInterest>();
+        private List<Vector> SteeringVectors = new List<Vector>();
 
-        private static float hystAmmout = 0.6f; // Ammpont of hysteresis when creature comes out of border
-        private static float maxBorderSpeed = 0.1f; // Maximum speed when out of border
-        private static float minBorderSpeed = 0.001f; // Minimum speed when out of border
-        private static float maxDistanceOutOfBorder = 1000; // Distance after which maxBorderSpeed is triggered
+        private PointOfInterest OutOfBorderForce;
+        private float MaxOutOfBorderSpeed = 1000;
+        private float MinOutOfBorderSpeed = 10;
 
-        public bool dispalyForces = false; // Toogles drawing forces
-        public bool fastForce = true; // Toggles drawing more foce informations
-        public int forceMagnifier = 4; // Tels program how much it should extend forces vectors, so they are visible
+        public Vector GlobalForce;
+        public bool DisplayGlobalVector = false;
+        public bool DeletePointOfInterestOnEntry = true;
 
-        private Color tempColor; // Stores color of creature when outo f boundry
+        #region Constructors
 
-        private Random colorR = new Random(); // Used to generate random colors
-
-        /// <summary>
-        /// Initialisez cresture
-        /// </summary>
-        /// <param name="x">X positon</param>
-        /// <param name="y">Y position</param>
         public Creature(float x, float y)
         {
-            Positon = new PointF(x, y);
+            Position = new PointF(x, y);
+            Size = 10;
             Color = Color.White;
-            tempColor = Color;
-            Size = 20;
-            boundryForce = new Vector2(new PointF(0, 0));
         }
 
-        /// <summary>
-        /// Initialisez cresture
-        /// </summary>
-        /// <param name="_Position">Creature start position</param>
         public Creature(PointF _Position)
         {
-            Positon = _Position;
+            Position = _Position;
+            Size = 10;
             Color = Color.White;
-            tempColor = Color;
-            Size = 20;
-            boundryForce = new Vector2(new PointF(0, 0));
         }
 
-        /// <summary>
-        /// Initialisez cresture
-        /// </summary>
-        /// <param name="_Position">Creature start position</param>
-        /// <param name="_Color">Creature color</param>
-        /// <param name="_Size">Creature size</param>
         public Creature(PointF _Position, Color _Color, float _Size)
         {
-            Positon = _Position;
-            Color = _Color;
+            Position = _Position;
             Size = _Size;
-            boundryForce = new Vector2(new PointF(0, 0));
-            tempColor = Color;
+            Color = _Color;
         }
 
-        /// <summary>
-        /// Moves creature by all forces
-        /// </summary>
-        public void Move()
-        {
-            baseForce = new Vector2(Positon, new PointF(0, 0));
-            baseForce.Add(forces.ToArray());
-            baseForce.Add(boundryForce);
+        #endregion
 
-            Positon = new PointF(Positon.X + baseForce.End.X, Positon.Y + baseForce.End.Y);
-        }
+        #region Drawing
 
-        /// <summary>
-        /// Draws the Creatue to given buffer
-        /// </summary>
-        /// <param name="g">Targeted buffer</param>
         public void Draw(Graphics g)
         {
-            g.FillEllipse(new SolidBrush(Color), (float)(Positon.X - Size / 2), (float)(Positon.Y - Size / 2), Size, Size);
+            g.FillEllipse(new SolidBrush(Color), Position.X - Size / 2, Position.Y - Size / 2, Size, Size);
 
-            if (dispalyForces)
+            if (GlobalForce != null)
             {
-                if (baseForce != null)
-                {
-                    g.DrawLine(
-                        new Pen(Color.Red),
-                        Positon,
-                        new PointF((float)(baseForce.End.X * forceMagnifier + Math.Abs(Positon.X - baseForce.End.X)),
-                        (float)(baseForce.End.Y * forceMagnifier + Math.Abs(Positon.Y - baseForce.End.Y))));
+                Vector front = new Vector(GlobalForce);
 
-                    if (!fastForce)
-                        g.DrawEllipse(
-                            new Pen(Color.Red),
-                            (float)(baseForce.End.X * forceMagnifier + Math.Abs(Positon.X) - 3),
-                            (float)(baseForce.End.Y * forceMagnifier + Math.Abs(Positon.Y) - 3), 6, 6);
+                if (front.End != new PointF(0, 0))
+                {
+                    front.Normalise();
+                    front.Mul(Size / 2);
+                    front.Translate(Position);
+
+                    g.FillEllipse(new SolidBrush(Color), front.EndT.X - Size / 4, front.EndT.Y - Size / 4, Size / 2, Size / 2);
                 }
+            }
 
-                if (!fastForce)
+            /*
+            if (InterestingPoints.Count > 0)
+            {
+                double dx = InterestingPoints[0].Point.X - Position.X;
+                double dy = InterestingPoints[0].Point.Y - Position.Y;
+
+                int d = (int)Math.Sqrt(dx * dx + dy * dy);
+
+                g.DrawString("D = " + d,
+                    new Font("Arial", 10),
+                    new SolidBrush(Color.White),
+                    Position,
+                    new StringFormat());
+            }
+            */
+
+            if (DisplayGlobalVector)
+            {
+                if (GlobalForce != null)
                 {
-                    for (int i = 0; i < forces.Count; i++)
+                    Vector vievForce = new Vector(GlobalForce);
+                    vievForce.Mul(10);
+                    vievForce.Translate(Position);
+                    g.DrawLine(new Pen(Color.LightPink), Position, vievForce.EndT);
+                }
+            }
+        }
+
+        #endregion
+
+        #region Steering
+
+        public void AddPointOfInterest(PointF _Point, float _Force)
+        {
+            PointOfInterest myPoint = new PointOfInterest(_Point, _Force);
+            InterestingPoints.Add(myPoint);
+        }
+
+        public void ClearPointsOfInterest()
+        {
+            InterestingPoints.Clear();
+        }
+
+        public void Move()
+        {
+            SteeringVectors.Clear();
+            float speed;
+
+            for (int i = InterestingPoints.Count - 1; i >= 0; i--)
+            {
+                Vector force = new Vector(InterestingPoints[i].Point);
+                force.Sub(new Vector(Position));
+                force.Normalise();
+
+                double dx = InterestingPoints[i].Point.X - Position.X;
+                double dy = InterestingPoints[i].Point.Y - Position.Y;
+
+                double d = Math.Sqrt(dx * dx + dy * dy);
+                double f = 1000 * (Size / (d * d));
+
+                speed = (float)(InterestingPoints[i].Force * f);
+
+                if (d < Size)
+                {
+                    if (DeletePointOfInterestOnEntry)
+                        InterestingPoints.RemoveAt(i);
+                    else
+                        force.Mul(0);
+                }
+                else if (d < Size * 10)
+                {
+                    speed = (float)(speed * Size / f);
+
+                    force.Mul(speed);
+                }
+                else
+                    force.Mul(speed);
+
+                SteeringVectors.Add(force);
+            }
+
+            GlobalForce = new Vector(0, 0);
+
+            if (OutOfBorderForce == null)
+            {
+                if (SteeringVectors.Count > 0)
+                {
+                    GlobalForce.Add(SteeringVectors.ToArray());
+
+                    speed = GlobalForce.GetLength();
+
+                    if (speed > MaxSpeed)
                     {
-                        g.DrawLine(
-                            new Pen(fColors[i]),
-                            Positon,
-                            new PointF((float)(forces[i].End.X * forceMagnifier + Math.Abs(Positon.X)),
-                            (float)(forces[i].End.Y * forceMagnifier + Math.Abs(Positon.Y))));
-                        g.DrawEllipse(
-                            new Pen(fColors[i]),
-                            (float)(forces[i].End.X * forceMagnifier + Math.Abs(Positon.X) - 3),
-                            (float)(forces[i].End.Y * forceMagnifier + Math.Abs(Positon.Y) - 3), 6, 6);
+                        GlobalForce.Normalise();
+                        GlobalForce.Mul(MaxSpeed);
+                    }
+                    else if (speed < MinSpeed)
+                    {
+                        GlobalForce.Normalise();
+                        GlobalForce.Mul(MinSpeed);
                     }
                 }
             }
-        }
-
-        /// <summary>
-        /// Insert new force, to drive creature
-        /// </summary>
-        /// <param name="f">Force</param>
-        public void AttachForce(Vector2 f)
-        {
-            forces.Add(f);
-            fColors.Add(Color.FromArgb(colorR.Next(255), colorR.Next(255), colorR.Next(255)));
-        }
-
-        /// <summary>
-        /// Tels if creature is insde of a box
-        /// </summary>
-        /// <param name="colBox">Box to check</param>
-        /// <returns></returns>
-        public bool IsColide(Rectangle colBox)
-        {
-            return colBox.Contains((int)Positon.X, (int)Positon.Y);
-        }
-
-        /// <summary>
-        /// Moves creature back inside border
-        /// </summary>
-        /// <param name="Border">End of creatures world</param>
-        /// <param name="Window">Visible window working area</param>
-        public void CheckBoundry(Rectangle Border, Rectangle Window)
-        {
-            Rectangle hyst = new Rectangle();
-            hyst.Location = new Point(
-                (int)(Border.X + hystAmmout * Border.X),
-                (int)(Border.Y + hystAmmout * Border.Y));
-            hyst.Size = new Size(
-                (int)(Border.Width - 2 * (hystAmmout * Border.X)),
-                (int)(Border.Height - 2 * (hystAmmout * Border.Y)));
-
-            if (!IsColide(Border))
-                outOfBoundry = true;
-
-            if (IsColide(hyst))
-            {
-                outOfBoundry = false;
-
-                boundryForce = new Vector2(boundryForce.End.X / 1.05f, boundryForce.End.Y / 1.05f);
-
-                //if ((boundryForce.End.X > -0.01 && boundryForce.End.X < 0.01) || (boundryForce.End.Y > -0.01 && boundryForce.End.Y < 0.01))
-                    //boundryForce = new Vector2(0, 0);
-            }
-
-            if (!outOfBoundry)
-                Color = tempColor;
-
             else
             {
-                double dx = Math.Abs(Positon.X - Window.Width / 2);
-                double dy = Math.Abs(Positon.Y - Window.Height / 2);
+                Vector force = new Vector(OutOfBorderForce.Point);
+                force.Sub(new Vector(Position));
+                force.Normalise();
+                force.Mul(OutOfBorderForce.Force);
 
-                double distance = Math.Sqrt(dx * dx + dy * dy);
-
-                double a = (minBorderSpeed - maxBorderSpeed) / (Window.Height / 2 - maxDistanceOutOfBorder);
-                double b = (Window.Height / 2) / (a * minBorderSpeed);
-
-                float speed = (float)(a * distance + b);
-
-                if (speed > maxBorderSpeed)
-                    speed = maxBorderSpeed;
-                else if (speed < minBorderSpeed)
-                    speed = minBorderSpeed;
-
-                Color = Color.Red;
-
-                if (Positon.X >= Window.Width / 2)
-                    boundryForce.Add(new Vector2(-speed, 0));
-                else if (Positon.X < Window.Height / 2)
-                    boundryForce.Add(new Vector2(speed, 0));
-
-                if (Positon.Y >= Window.Height / 2)
-                    boundryForce.Add(new Vector2(0, -speed));
-                else if (Positon.Y < Window.Width / 2)
-                    boundryForce.Add(new Vector2(0, speed));
+                GlobalForce = force;
             }
+
+            Position = new PointF(Position.X + GlobalForce.End.X, Position.Y + GlobalForce.End.Y);
+
         }
+
+        public void CheckOutOfBorder(Rectangle border)
+        {
+            if (!border.Contains((int)Position.X, (int)Position.Y))
+            {
+                double dx = Main.Window.Width / 2 - Position.X;
+                double dy = Main.Window.Height / 2 - Position.Y;
+
+                double d = Math.Sqrt(dx * dx + dy * dy);
+
+                float force = (float)(d / 100);
+
+                if (force > MaxOutOfBorderSpeed)
+                    force = MaxOutOfBorderSpeed;
+                else if (force < MinOutOfBorderSpeed)
+                    force = MinOutOfBorderSpeed;
+
+                if (OutOfBorderForce == null)
+                {
+                    OutOfBorderForce = new PointOfInterest(new PointF(Main.Window.Width / 2, Main.Window.Height / 2), force);
+                }
+            }
+            else
+                OutOfBorderForce = null;
+        }
+
+        #endregion
     }
 }

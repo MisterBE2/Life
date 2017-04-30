@@ -39,7 +39,7 @@ namespace Life_V0._1
         {
             if (target.Width > 0 && target.Height > 0)
             {
-                Rectangle bufBoundry = new Rectangle(0, 0, target.Width, target.Height);
+                Rectangle bufBoundry = new Rectangle(0, 0, target.Width - Main.WindowXShift, target.Height - Main.WindowYShift);
                 BufferedGraphicsContext context = BufferedGraphicsManager.Current;
                 buffer = context.Allocate(target.CreateGraphics(), bufBoundry);
             }

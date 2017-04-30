@@ -53,10 +53,11 @@
     <Compile Include="Life.Designer.cs">
       <DependentUpon>Life.cs</DependentUpon>
     </Compile>
+    <Compile Include="PointOfInterest.cs" />
     <Compile Include="Program.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
     <Compile Include="TheEngine.cs" />
-    <Compile Include="Vector2.cs" />
+    <Compile Include="Vector.cs" />
     <EmbeddedResource Include="Life.resx">
       <DependentUpon>Life.cs</DependentUpon>
     </EmbeddedResource>
