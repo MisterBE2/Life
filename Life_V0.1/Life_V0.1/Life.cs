@@ -21,14 +21,26 @@ namespace Life_V0._1
         public static Rectangle Border; // Declares border of life (gray square near edges)
         public int BorderSize = 10; // Size of border
 
+        float size, speed, health, energy;
+        PointF pSize, pSpeed, pHealth, pEnergy;
+        bool DrawStatistics = false;
+        bool DrawHealth = false;
+
+        #region Grid
+
+        public int[] gridSize = { 30, 15 };
+        public bool showGrid = false;
+
+        #endregion
+
         TheEngine gBuf;
         List<PointOfInterest> GlobalPointOfInterest = new List<PointOfInterest>();
 
         #region FPS Counter
 
         DateTime last = DateTime.Now;
-        long frames;
-        long lastFrames;
+        byte frames;
+        byte lastFrames;
 
         Stopwatch gStopwatch = new Stopwatch();
 
@@ -57,33 +69,37 @@ namespace Life_V0._1
             this.DoubleBuffered = true;
             gBuf = new TheEngine(this);
             UpdateWindowSize();
-
             #endregion
 
             UpdateBorder();
 
             for (int i = 0; i < 1000; i++)
             {
-
-                float x = (float)(r1.Next(0, Window.Width));
-                float y = (float)(r1.Next(0, Window.Height));
+                float x = (float)(r1.Next(Border.X, Border.X + Border.Width));
+                float y = (float)(r1.Next(Border.Y, Border.X + Border.Height));
 
                 GlobalPointOfInterest.Add(new PointOfInterest(new PointF(x, y), (float)(r1.NextDouble())));
             }
 
-            for (int i = 0; i < 1; i++)
+            for (int i = 0; i < 10000; i++)
             {
                 Creature tempCreature;
 
-                float x = Window.Width/2;
-                float y = Window.Height/2;
+                float x = (float)(r1.Next(Border.X, Border.X + Border.Width));
+                float y = (float)(r1.Next(Border.Y, Border.X + Border.Height));
+
                 tempCreature = new Creature(
                     new PointF(x, y),
                     Color.FromArgb(r1.Next(255), r1.Next(255), r1.Next(255)),
-                    r1.Next(7, 20)
+                    r1.Next(5, 20),
+                    r1.Next(0, Creatures.Count),
+                    (float)(r1.Next(1000) / 1000f),
+                    (float)(r1.Next(1000) / 1000f)
                     );
 
-                tempCreature.MaxSpeed = (float)(r1.NextDouble() * 2);
+                tempCreature.eSub = (float)(r1.Next(1000) / 1000f);
+
+                tempCreature.MaxSpeed = (float)(r1.Next(1000, 5000) / 1000f);
                 tempCreature.InterestingPoints = GlobalPointOfInterest;
 
                 Creatures.Add(tempCreature);
@@ -99,7 +115,11 @@ namespace Life_V0._1
             TimeSpan ts = DateTime.Now.Subtract(last);
 
             if (lastFrames > frames)
+            {
                 last = DateTime.Now;
+                frames = 0;
+                lastFrames = 0;
+            }
 
             lastFrames = frames;
 
@@ -131,6 +151,17 @@ namespace Life_V0._1
 
         #region Rendering
 
+        public void DisplayGrid(Graphics g)
+        {
+            for (int i = 0; i < gridSize[0]; i++)
+            {
+                for (int z = 0; z < gridSize[1]; z++)
+                {
+                    g.DrawRectangle(new Pen(Color.Gray), i * Window.Width / gridSize[0], z * Window.Height / gridSize[1], Window.Width / gridSize[0], Window.Height / gridSize[1]);
+                }
+            }
+        }
+
         /// <summary>
         /// Calculates everything
         /// </summary>
@@ -143,10 +174,62 @@ namespace Life_V0._1
 
             #region Calculations
 
-            for (int i = 0; i < Creatures.Count; i++)
+            size = 0;
+            speed = 0;
+            health = 0;
+            energy = 0;
+
+            pSize = labelSize.Location;
+            pSpeed = labelSpeed.Location;
+            pHealth = labelHealth.Location;
+            pEnergy = labelEnergy.Location;
+
+            for (int i = Creatures.Count - 1; i >= 0; i--)
             {
-                Creatures[i].CheckOutOfBorder(Border);
-                Creatures[i].Move();
+                if (!Creatures[i].Dead)
+                {
+                    Creatures[i].CheckOutOfBorder(Border);
+                    Creatures[i].Move();
+                    Creatures[i].CheckHelath();
+
+                    if (DrawStatistics)
+                    {
+                        if (Creatures[i].Size > size)
+                        {
+                            size = Creatures[i].Size;
+                            pSize = Creatures[i].Position;
+                        }
+
+                        if (Creatures[i].MinSpeed > speed)
+                        {
+                            speed = Creatures[i].MinSpeed;
+                            pSpeed = Creatures[i].Position;
+                        }
+
+                        if (Creatures[i].CurHealth > health)
+                        {
+                            health = Creatures[i].CurHealth;
+                            pHealth = Creatures[i].Position;
+                        }
+
+                        if (Creatures[i].CurEnergy > energy)
+                        {
+                            energy = Creatures[i].CurEnergy;
+                            pEnergy = Creatures[i].Position;
+                        }
+                    }
+
+                }
+                else
+                {
+                    for (int z = 0; z < Creatures[i].Size; z++)
+                    {
+                        GlobalPointOfInterest.Add(new PointOfInterest(new PointF(Creatures[i].Position.X + r1.Next(-10, 10), Creatures[i].Position.Y + r1.Next(-10, 10)), (float)r1.NextDouble()));
+                    }
+
+
+                    Creatures.RemoveAt(i);
+                }
             }
 
             #endregion
@@ -165,10 +248,15 @@ namespace Life_V0._1
         {
             RefTimer.Stop();
 
+            labelPopulation.Text = "Population: " + Creatures.Count;
+
+            //if(!workers[workers.Count-1].bg.IsBusy)
+            //Optymised();
+
             if (!backgroundWorkerCalculations.IsBusy)
                 backgroundWorkerCalculations.RunWorkerAsync();
 
-            //this.Refresh();
+            this.Refresh();
         }
 
         /// <summary>
@@ -185,26 +273,62 @@ namespace Life_V0._1
             #region Buffer Insertions
 
             gBuf.buffer.Graphics.DrawRectangle(new Pen(Color.Gray, 1), Border); // Draws border rectangle
-            //gBuf.buffer.Graphics.DrawEllipse(new Pen(Color.Gray), GlobalPointOfInterest.X - 3, GlobalPointOfInterest.Y - 3, 6, 6);
 
-            for (int z = 0; z < Creatures[0].InterestingPoints.Count; z++)
+            if (showGrid)
+                DisplayGrid(gBuf.buffer.Graphics);
+
+            for (int z = 0; z < GlobalPointOfInterest.Count; z++)
             {
-                gBuf.buffer.Graphics.DrawEllipse(new Pen(Color.FromArgb(222, 0, 255), 2), Creatures[0].InterestingPoints[z].Point.X - 3, Creatures[0].InterestingPoints[z].Point.Y - 3, 6, 6);
-
-                string force = string.Format("{0:0.00}", Creatures[0].InterestingPoints[z].Force);
-
-                /*
-                gBuf.buffer.Graphics.DrawString("F = " + force,
-                new Font("Arial", 7),
-                new SolidBrush(Color.White),
-                Creatures[0].InterestingPoints[z].Point.X, Creatures[0].InterestingPoints[z].Point.Y, 
-                new StringFormat());
-                */
+                if (GlobalPointOfInterest[z] != null)
+                {
+                    try
+                    {
+                        gBuf.buffer.Graphics.DrawEllipse(new Pen(Color.FromArgb(222, 0, 255), 2), GlobalPointOfInterest[z].Point.X - 3, GlobalPointOfInterest[z].Point.Y - 3, 6, 6);
+                    }
+                    catch
+                    {
+                    }
+                }
             }
 
             for (int i = 0; i < Creatures.Count; i++)
             {
-                Creatures[i].Draw(gBuf.buffer.Graphics);
+                if (!Creatures[i].Dead)
+                {
+                    if (DrawHealth)
+                        Creatures[i].DrawHealth = true;
+                    else
+                        Creatures[i].DrawHealth = false;
+
+                    Creatures[i].Draw(gBuf.buffer.Graphics);
+                }
+            }
+
+            if (DrawStatistics)
+            {
+                if (pSize != null)
+                {
+                    labelSize.Text = "Largest: " + size;
+                    gBuf.buffer.Graphics.DrawLine(new Pen(Color.White), labelSize.Location, pSize);
+                }
+
+                if (pSpeed != null)
+                {
+                    labelSpeed.Text = "Fastest: " + speed;
+                    gBuf.buffer.Graphics.DrawLine(new Pen(Color.Yellow), labelSpeed.Location, pSpeed);
+                }
+
+                if (pHealth != null)
+                {
+                    labelHealth.Text = "Healthiest: " + health;
+                    gBuf.buffer.Graphics.DrawLine(new Pen(Color.Red), labelHealth.Location, pHealth);
+                }
+
+                if (pEnergy != null)
+                {
+                    labelEnergy.Text = "Most fit: " + energy;
+                    gBuf.buffer.Graphics.DrawLine(new Pen(Color.Green), labelEnergy.Location, pEnergy);
+                }
             }
 
             #endregion
@@ -265,10 +389,12 @@ namespace Life_V0._1
         private void Main_MouseClick(object sender, MouseEventArgs e)
         {
             Point mousePos = this.PointToClient(Cursor.Position);
-            GlobalPointOfInterest.Add(new PointOfInterest(mousePos, (float)(r1.NextDouble())));
+
 
             if (e.Button == MouseButtons.Left)
             {
+                GlobalPointOfInterest.Add(new PointOfInterest(mousePos, (float)(r1.NextDouble())));
+
                 for (int i = 0; i < Creatures.Count; i++)
                 {
                     Creatures[i].InterestingPoints = GlobalPointOfInterest;
@@ -276,18 +402,101 @@ namespace Life_V0._1
             }
             else if (e.Button == MouseButtons.Right)
             {
-                for (int i = 0; i < Creatures.Count; i++)
+                if (Creatures.Count > 0)
                 {
-                    Creatures[i].Position = mousePos;
+                    for (int i = 0; i < Creatures.Count; i++)
+                    {
+                        Creatures[i].Position = mousePos;
+                    }
+                }
+                else
+                {
+                    Creature tempCreature;
+                    tempCreature = new Creature(
+                        mousePos,
+                        Color.FromArgb(r1.Next(255), r1.Next(255), r1.Next(255)),
+                        r1.Next(5, 20),
+                        r1.Next(0, Creatures.Count),
+                        1,
+                        1
+                        );
+
+                    tempCreature.MaxSpeed = (float)(r1.Next(1000, 5000) / 1000f);
+                    tempCreature.InterestingPoints = GlobalPointOfInterest;
+
+                    Creatures.Add(tempCreature);
                 }
             }
             else if (e.Button == MouseButtons.Middle)
             {
+
                 for (int i = 0; i < Creatures.Count; i++)
                 {
                     Creatures[i].ClearPointsOfInterest();
                 }
+
             }
         }
+
+        private void Main_KeyUp(object sender, KeyEventArgs e)
+        {
+            if (e.KeyCode == Keys.Q)
+            {
+                for (int i = 0; i < Creatures.Count; i++)
+                {
+                    if (Creatures[i].DrawFieldOfViev)
+                        Creatures[i].DrawFieldOfViev = false;
+                    else
+                        Creatures[i].DrawFieldOfViev = true;
+                }
+            }
+            else if (e.KeyCode == Keys.W)
+            {
+                for (int i = 0; i < Creatures.Count; i++)
+                {
+                    if (Creatures[i].DrawGlobalVector)
+                        Creatures[i].DrawGlobalVector = false;
+                    else
+                        Creatures[i].DrawGlobalVector = true;
+                }
+            }
+            else if (e.KeyCode == Keys.E)
+            {
+                for (int i = 0; i < Creatures.Count; i++)
+                {
+                    if (Creatures[i].DrawShufflePoint)
+                        Creatures[i].DrawShufflePoint = false;
+                    else
+                        Creatures[i].DrawShufflePoint = true;
+                }
+            }
+            else if (e.KeyCode == Keys.R)
+            {
+                if (DrawStatistics)
+                {
+                    labelSize.Visible = false;
+                    labelSpeed.Visible = false;
+                    labelHealth.Visible = false;
+                    labelEnergy.Visible = false;
+                    DrawStatistics = false;
+                }
+                else
+                {
+                    labelSize.Visible = true;
+                    labelSpeed.Visible = true;
+                    labelHealth.Visible = true;
+                    labelEnergy.Visible = true;
+                    DrawStatistics = true;
+                }
+            }
+            else if (e.KeyCode == Keys.T)
+            {
+                if (DrawHealth)
+                    DrawHealth = false;
+                else
+                    DrawHealth = true;
+            }
+        }
+
     }
 }

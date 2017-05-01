@@ -11,10 +11,25 @@ namespace Life_V0._1
         public Color Color { get; set; }
         public float Health { get; set; }
         public float Energy { get; set; }
-        public float MaxSpeed = 5;
-        public float MinSpeed = 1f;
+        public float MaxSpeed = 2; // Maximum speed of creature
+        public float MinSpeed = 0.2f; // Minimum speed of creature
+        public float MaxForce = 1.68f; // Maxiumum force
+
+        public float CurEnergy;
+        public float CurHealth;
+        private float hSub;
+        public float eSub = 0.01f;
+        public bool Dead = false;
+        private Color tempColor;
+        public bool eat = false;
+
+        public int Randomer { get; set; }
+
+        public float ViewLength = 100; // How far can creature see
+        public bool shuffle = false;
 
         public List<PointOfInterest> InterestingPoints = new List<PointOfInterest>();
+        private PointOfInterest ShufflePoint;
         private List<Vector> SteeringVectors = new List<Vector>();
 
         private PointOfInterest OutOfBorderForce;
@@ -22,8 +37,22 @@ namespace Life_V0._1
         private float MinOutOfBorderSpeed = 10;
 
         public Vector GlobalForce;
-        public bool DisplayGlobalVector = false;
         public bool DeletePointOfInterestOnEntry = true;
+
+        public bool DrawGlobalVector = false;
+        public bool DrawFieldOfViev = false;
+        public bool DrawShufflePoint = false;
+        public bool DrawHealth = false;
+
+        #region Position Variables
+
+        float dx, dy, d, s, f;
+        float gA, gB;
+        float pass = 0;
+
+        Random r1;
+
+        #endregion
 
         #region Constructors
 
@@ -32,6 +61,8 @@ namespace Life_V0._1
             Position = new PointF(x, y);
             Size = 10;
             Color = Color.White;
+            Randomer = 1;
+            DoOnStart();
         }
 
         public Creature(PointF _Position)
@@ -39,13 +70,30 @@ namespace Life_V0._1
             Position = _Position;
             Size = 10;
             Color = Color.White;
+            Randomer = 1;
+            DoOnStart();
         }
 
-        public Creature(PointF _Position, Color _Color, float _Size)
+        public Creature(PointF _Position, Color _Color, float _Size, int _seed, float _Health, float _Energy)
         {
             Position = _Position;
             Size = _Size;
             Color = _Color;
+            Randomer = _seed;
+            Health = _Health;
+            Energy = _Energy;
+            DoOnStart();
+        }
+
+        private void DoOnStart()
+        {
+            gA = (MaxSpeed - MinSpeed) / MaxForce;
+            gB = MinSpeed;
+
+            r1 = new Random(Randomer);
+            tempColor = Color;
+            CurEnergy = Energy;
+            CurHealth = Health;
         }
 
         #endregion
@@ -54,7 +102,23 @@ namespace Life_V0._1
 
         public void Draw(Graphics g)
         {
+            if (DrawFieldOfViev)
+                DrawFiledOfView(g);
+
             g.FillEllipse(new SolidBrush(Color), Position.X - Size / 2, Position.Y - Size / 2, Size, Size);
+
+            if (DrawShufflePoint)
+                if (ShufflePoint != null)
+                    g.FillEllipse(new SolidBrush(Color), ShufflePoint.Point.X - 2, ShufflePoint.Point.Y - 2, 4, 4);
+
+            /*
+            if (GlobalForce != null)
+                g.DrawString(pass.ToString(),
+                        new Font("Arial", 10),
+                        new SolidBrush(Color.White),
+                        Position,
+                        new StringFormat());
+            */
 
             if (GlobalForce != null)
             {
@@ -86,7 +150,7 @@ namespace Life_V0._1
             }
             */
 
-            if (DisplayGlobalVector)
+            if (DrawGlobalVector)
             {
                 if (GlobalForce != null)
                 {
@@ -95,6 +159,23 @@ namespace Life_V0._1
                     vievForce.Translate(Position);
                     g.DrawLine(new Pen(Color.LightPink), Position, vievForce.EndT);
                 }
+            }
+
+            if (DrawHealth)
+            {
+                g.DrawString("H: " + CurHealth,
+                    new Font("Arial", 7),
+                    new SolidBrush(Color.White),
+                    Position,
+                    new StringFormat());
+            }
+        }
+
+        public void DrawFiledOfView(Graphics g)
+        {
+            if (GlobalForce != null)
+            {
+                g.DrawEllipse(new Pen(Color.LightGreen), Position.X - (ViewLength + Size / 2), Position.Y - (ViewLength + Size / 2), ViewLength * 2 + Size, ViewLength * 2 + Size);
             }
         }
 
@@ -113,45 +194,169 @@ namespace Life_V0._1
             InterestingPoints.Clear();
         }
 
+        public float GetDistance(PointF p1, PointF p2)
+        {
+            dx = p2.X - p1.X;
+            dy = p2.Y - p1.Y;
+
+            return (float)Math.Sqrt(dx * dx + dy * dy);
+        }
+
+        public void CheckHelath()
+        {
+            if (CurEnergy < 0.25 * Energy)
+                eat = true;
+
+            if (CurEnergy > 0.75 * Energy)
+                eat = false;
+
+            if (CurEnergy < 0.2 * Energy)
+            {
+                hSub = 0.001f;
+
+                if (CurHealth <= Health)
+                {
+                    byte r = (byte)(CurHealth * tempColor.R);
+                    byte g = (byte)(CurHealth * tempColor.G);
+                    byte b = (byte)(CurHealth * tempColor.B);
+
+                    if (r < 0.2 * tempColor.R)
+                        r = (byte)(0.2 * tempColor.R);
+
+                    if (g < 0.2 * tempColor.G)
+                        g = (byte)(0.2 * tempColor.G);
+
+                    if (b < 0.2 * tempColor.B)
+                        b = (byte)(0.2 * tempColor.B);
+
+                    Color = Color.FromArgb(r, g, b);
+
+                }
+                else
+                    Color = tempColor;
+
+                if (CurHealth <= 0)
+                {
+                    Dead = true;
+                }
+                else
+                    CurHealth -= hSub;
+            }
+            else
+
+            if (CurEnergy >= 0.6 * Energy)
+            {
+                CurHealth += 0.01f;
+
+                if (Size < 50)
+                    Size += 0.001f;
+
+                if (MinSpeed < MaxSpeed)
+                    MinSpeed += 0.0001f;
+
+                ViewLength += 0.00001f;
+
+            }
+
+            CurEnergy -= eSub;
+        }
+
         public void Move()
         {
             SteeringVectors.Clear();
-            float speed;
 
-            for (int i = InterestingPoints.Count - 1; i >= 0; i--)
+            shuffle = true;
+
+            if (eat)
             {
-                Vector force = new Vector(InterestingPoints[i].Point);
-                force.Sub(new Vector(Position));
-                force.Normalise();
-
-                double dx = InterestingPoints[i].Point.X - Position.X;
-                double dy = InterestingPoints[i].Point.Y - Position.Y;
-
-                double d = Math.Sqrt(dx * dx + dy * dy);
-                double f = 1000 * (Size / (d * d));
-
-                speed = (float)(InterestingPoints[i].Force * f);
-
-                if (d < Size)
+                for (int i = InterestingPoints.Count - 1; i >= 0; i--)
                 {
-                    if (DeletePointOfInterestOnEntry)
-                        InterestingPoints.RemoveAt(i);
-                    else
-                        force.Mul(0);
-                }
-                else if (d < Size * 10)
-                {
-                    speed = (float)(speed * Size / f);
+                    d = GetDistance(Position, InterestingPoints[i].Point);
 
-                    force.Mul(speed);
-                }
-                else
-                    force.Mul(speed);
+                    if (d <= ViewLength + Size)
+                    {
+                        shuffle = false;
 
-                SteeringVectors.Add(force);
+                        if (ShufflePoint != null)
+                            ShufflePoint = null;
+
+                        Vector force = new Vector(InterestingPoints[i].Point);
+                        force.Sub(new Vector(Position));
+                        force.Normalise();
+
+                        f = 10 * (Size / (d * d));
+                        s = (float)(InterestingPoints[i].Force * f);
+
+                        if (d < Size - Size * 0.5f)
+                        {
+                            if (DeletePointOfInterestOnEntry)
+                            {
+                                InterestingPoints.RemoveAt(i);
+                                CurEnergy += 0.5f;
+                            }
+                            else
+                                force.Mul(0);
+                        }
+                        else
+                            force.Mul(InterestingPoints[i].Force * f);
+
+                        SteeringVectors.Add(force);
+                    }
+                }
             }
 
             GlobalForce = new Vector(0, 0);
+
+            if (shuffle)
+            {
+                if (ShufflePoint == null)
+                {
+                    PointF shuffleP;
+
+                    if (eat)
+                    {
+                        while (true)
+                        {
+                            shuffleP = new PointF(r1.Next((int)(Position.X - (ViewLength + Size + 100)), (int)(Position.X + ViewLength + Size + 100)), r1.Next((int)(Position.Y - (ViewLength + Size + 100)), (int)(Position.Y + ViewLength + Size + 100)));
+
+                            if (Main.Border.Contains((int)shuffleP.X, (int)shuffleP.Y))
+                                break;
+                        }
+                    }
+                    else
+                    {
+                        while (true)
+                        {
+                            shuffleP = new PointF(r1.Next((int)(Position.X - (ViewLength + Size)), (int)(Position.X + ViewLength + Size)), r1.Next((int)(Position.Y - (ViewLength + Size)), (int)(Position.Y + ViewLength + Size)));
+
+                            if (GetDistance(Position, shuffleP) < ViewLength + Size && Main.Border.Contains((int)shuffleP.X, (int)shuffleP.Y))
+                                break;
+                        }
+                    }
+
+                    ShufflePoint = new PointOfInterest(shuffleP, (float)r1.NextDouble());
+                }
+                else
+                {
+                    d = GetDistance(Position, ShufflePoint.Point);
+
+                    Vector force = new Vector(ShufflePoint.Point);
+                    force.Sub(new Vector(Position));
+                    force.Normalise();
+
+                    f = 10 * (Size / (d * d));
+                    s = (float)(ShufflePoint.Force * f);
+
+                    if (d < Size - Size * 0.5f)
+                    {
+                        ShufflePoint = null;
+                    }
+                    else
+                        force.Mul(ShufflePoint.Force * f);
+
+                    SteeringVectors.Add(force);
+                }
+            }
 
             if (OutOfBorderForce == null)
             {
@@ -159,18 +364,23 @@ namespace Life_V0._1
                 {
                     GlobalForce.Add(SteeringVectors.ToArray());
 
-                    speed = GlobalForce.GetLength();
+                    s = GlobalForce.GetLength();
+                    s = gA * s + gB;
 
-                    if (speed > MaxSpeed)
+                    GlobalForce.Normalise();
+                    GlobalForce.Mul(s);
+
+                    if (shuffle)
+                        s = MinSpeed;
+                    else
+                        s = MaxSpeed;
+
+                    if (GlobalForce.GetLength() > s)
                     {
                         GlobalForce.Normalise();
-                        GlobalForce.Mul(MaxSpeed);
+                        GlobalForce.Mul(s);
                     }
-                    else if (speed < MinSpeed)
-                    {
-                        GlobalForce.Normalise();
-                        GlobalForce.Mul(MinSpeed);
-                    }
+
                 }
             }
             else
@@ -191,21 +401,21 @@ namespace Life_V0._1
         {
             if (!border.Contains((int)Position.X, (int)Position.Y))
             {
-                double dx = Main.Window.Width / 2 - Position.X;
-                double dy = Main.Window.Height / 2 - Position.Y;
+                dx = Main.Window.Width / 2 - Position.X;
+                dy = Main.Window.Height / 2 - Position.Y;
 
-                double d = Math.Sqrt(dx * dx + dy * dy);
+                d = (float)Math.Sqrt(dx * dx + dy * dy);
 
-                float force = (float)(d / 100);
+                f = (float)(d / 100);
 
-                if (force > MaxOutOfBorderSpeed)
-                    force = MaxOutOfBorderSpeed;
-                else if (force < MinOutOfBorderSpeed)
-                    force = MinOutOfBorderSpeed;
+                if (f > MaxOutOfBorderSpeed)
+                    f = MaxOutOfBorderSpeed;
+                else if (f < MinOutOfBorderSpeed)
+                    f = MinOutOfBorderSpeed;
 
                 if (OutOfBorderForce == null)
                 {
-                    OutOfBorderForce = new PointOfInterest(new PointF(Main.Window.Width / 2, Main.Window.Height / 2), force);
+                    OutOfBorderForce = new PointOfInterest(new PointF(Main.Window.Width / 2, Main.Window.Height / 2), f);
                 }
             }
             else

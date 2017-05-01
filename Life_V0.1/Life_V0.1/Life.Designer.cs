@@ -35,6 +35,11 @@
             this.labelRender = new System.Windows.Forms.Label();
             this.labelClaculations = new System.Windows.Forms.Label();
             this.backgroundWorkerCalculations = new System.ComponentModel.BackgroundWorker();
+            this.labelSpeed = new System.Windows.Forms.Label();
+            this.labelSize = new System.Windows.Forms.Label();
+            this.labelHealth = new System.Windows.Forms.Label();
+            this.labelEnergy = new System.Windows.Forms.Label();
+            this.labelPopulation = new System.Windows.Forms.Label();
             this.SuspendLayout();
             // 
             // RefTimer
@@ -74,12 +79,66 @@
             this.backgroundWorkerCalculations.DoWork += new System.ComponentModel.DoWorkEventHandler(this.backgroundWorkerCalculations_DoWork);
             this.backgroundWorkerCalculations.RunWorkerCompleted += new System.ComponentModel.RunWorkerCompletedEventHandler(this.backgroundWorkerCalculations_RunWorkerCompleted);
             // 
+            // labelSpeed
+            // 
+            this.labelSpeed.AutoSize = true;
+            this.labelSpeed.Location = new System.Drawing.Point(356, 9);
+            this.labelSpeed.Name = "labelSpeed";
+            this.labelSpeed.Size = new System.Drawing.Size(55, 17);
+            this.labelSpeed.TabIndex = 4;
+            this.labelSpeed.Text = "Fastest: ";
+            this.labelSpeed.Visible = false;
+            // 
+            // labelSize
+            // 
+            this.labelSize.AutoSize = true;
+            this.labelSize.Location = new System.Drawing.Point(207, 9);
+            this.labelSize.Name = "labelSize";
+            this.labelSize.Size = new System.Drawing.Size(58, 17);
+            this.labelSize.TabIndex = 5;
+            this.labelSize.Text = "Largest: ";
+            this.labelSize.Visible = false;
+            // 
+            // labelHealth
+            // 
+            this.labelHealth.AutoSize = true;
+            this.labelHealth.Location = new System.Drawing.Point(502, 9);
+            this.labelHealth.Name = "labelHealth";
+            this.labelHealth.Size = new System.Drawing.Size(72, 17);
+            this.labelHealth.TabIndex = 6;
+            this.labelHealth.Text = "Healthiest: ";
+            this.labelHealth.Visible = false;
+            // 
+            // labelEnergy
+            // 
+            this.labelEnergy.AutoSize = true;
+            this.labelEnergy.Location = new System.Drawing.Point(665, 9);
+            this.labelEnergy.Name = "labelEnergy";
+            this.labelEnergy.Size = new System.Drawing.Size(60, 17);
+            this.labelEnergy.TabIndex = 7;
+            this.labelEnergy.Text = "Most fit: ";
+            this.labelEnergy.Visible = false;
+            // 
+            // labelPopulation
+            // 
+            this.labelPopulation.AutoSize = true;
+            this.labelPopulation.Location = new System.Drawing.Point(12, 60);
+            this.labelPopulation.Name = "labelPopulation";
+            this.labelPopulation.Size = new System.Drawing.Size(77, 17);
+            this.labelPopulation.TabIndex = 8;
+            this.labelPopulation.Text = "Population: ";
+            // 
             // Main
             // 
             this.AutoScaleDimensions = new System.Drawing.SizeF(7F, 17F);
             this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
             this.BackColor = System.Drawing.Color.Black;
             this.ClientSize = new System.Drawing.Size(1084, 611);
+            this.Controls.Add(this.labelPopulation);
+            this.Controls.Add(this.labelEnergy);
+            this.Controls.Add(this.labelHealth);
+            this.Controls.Add(this.labelSize);
+            this.Controls.Add(this.labelSpeed);
             this.Controls.Add(this.labelClaculations);
             this.Controls.Add(this.labelRender);
             this.Controls.Add(this.labelFPS);
@@ -92,6 +151,7 @@
             this.Text = "Life";
             this.SizeChanged += new System.EventHandler(this.Main_SizeChanged);
             this.Paint += new System.Windows.Forms.PaintEventHandler(this.Main_Paint);
+            this.KeyUp += new System.Windows.Forms.KeyEventHandler(this.Main_KeyUp);
             this.MouseClick += new System.Windows.Forms.MouseEventHandler(this.Main_MouseClick);
             this.ResumeLayout(false);
             this.PerformLayout();
@@ -105,6 +165,11 @@
         private System.Windows.Forms.Label labelRender;
         private System.Windows.Forms.Label labelClaculations;
         private System.ComponentModel.BackgroundWorker backgroundWorkerCalculations;
+        private System.Windows.Forms.Label labelSpeed;
+        private System.Windows.Forms.Label labelSize;
+        private System.Windows.Forms.Label labelHealth;
+        private System.Windows.Forms.Label labelEnergy;
+        private System.Windows.Forms.Label labelPopulation;
     }
 }
 
