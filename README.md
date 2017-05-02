@@ -6,6 +6,18 @@ For this task I'll use Microsoft Visual C# and their Visual Studio. I'm begginer
 
 <p><h1> If you want to run the application without Visual Studio go to <b>Life_V0.1/Life_V0.1/bin/Debug/Life_V0.1.exe</b></h1>
 
+<p><h1>Key shortcuts:</h1>
+<ul>
+  <li>Q - Shows fields of view (WIP)</li>
+  <li>W - Shows forces</li>
+  <li>E - Shows shuffle points (WIP)</li>
+  <li>R - Shows high score (WIP)</li>
+  <li>T - Shows details about creatures</li>
+  <li>LMB - Adds random piece of food</li>
+  <li>MMB - Clear food</li>
+  <li>RMB - Adds 10 random creatures</li>
+ </ul>
+
 <center><img src="https://raw.githubusercontent.com/MisterBE2/Life/master/Life_progress_03.PNG" alt="The program"></center>
 
 <p><h2> Currently working on: <b>Bug fixes</b></h2>
