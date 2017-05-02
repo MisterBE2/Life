@@ -8,7 +8,7 @@ For this task I'll use Microsoft Visual C# and their Visual Studio. I'm begginer
 
 <center><img src="https://raw.githubusercontent.com/MisterBE2/Life/master/Life_progress_03.PNG" alt="The program"></center>
 
-<p><h2> Currently working on: <b>"DNA"</b></h2>
+<p><h2> Currently working on: <b>Bug fixes</b></h2>
 
 <p><h1>Already done:</h1>
 <ul>
@@ -19,11 +19,11 @@ For this task I'll use Microsoft Visual C# and their Visual Studio. I'm begginer
   <li>Vector based moving system</li>
   <li>Creature needs</li>
   <li>Creature mind</li>
+  <li>"DNA"</li>
+  <li>Reproduction system</li>
  </ul>
   
 <p><h1>To do:</h1>
 <ul>
-  <li>World</li>
-  <li>"DNA"</li>
-  <li>Reproduction system</li>
+<li>World (maybe)</li>  
 </ul>
