@@ -4,7 +4,7 @@ using System;
 
 namespace Life_V0._1
 {
-    class Creature
+    public partial class Creature
     {
         public PointF Position { get; set; }
         public float Size { get; set; }
@@ -15,6 +15,15 @@ namespace Life_V0._1
         public float MinSpeed = 0.2f; // Minimum speed of creature
         public float MaxForce = 1.68f; // Maxiumum force
 
+        public float gorwSpeed = 0.001f;
+        public float MaxSize = 50;
+        public long age = 0;
+        public long matureAge = 1000;
+        public long LifeDuration = 10000;
+        public int MaxChildern = 25;
+        public float GoodForce = 1;
+        public float BadForce = -1;
+        public float EatSpeed = 0.5f;
         public float CurEnergy;
         public float CurHealth;
         private float hSub;
@@ -22,10 +31,12 @@ namespace Life_V0._1
         public bool Dead = false;
         private Color tempColor;
         public bool eat = false;
+        public bool stopEat = false;
 
         public int Randomer { get; set; }
 
         public float ViewLength = 100; // How far can creature see
+        public float tempView; // Hom far can creature see while eating
         public bool shuffle = false;
 
         public List<PointOfInterest> InterestingPoints = new List<PointOfInterest>();
@@ -44,6 +55,8 @@ namespace Life_V0._1
         public bool DrawShufflePoint = false;
         public bool DrawHealth = false;
 
+        Main MainForm;
+
         #region Position Variables
 
         float dx, dy, d, s, f;
@@ -56,25 +69,27 @@ namespace Life_V0._1
 
         #region Constructors
 
-        public Creature(float x, float y)
+        public Creature(float x, float y, Main _MainForm)
         {
             Position = new PointF(x, y);
             Size = 10;
             Color = Color.White;
             Randomer = 1;
+            MainForm = _MainForm;
             DoOnStart();
         }
 
-        public Creature(PointF _Position)
+        public Creature(PointF _Position, Main _MainForm)
         {
             Position = _Position;
             Size = 10;
             Color = Color.White;
             Randomer = 1;
+            MainForm = _MainForm;
             DoOnStart();
         }
 
-        public Creature(PointF _Position, Color _Color, float _Size, int _seed, float _Health, float _Energy)
+        public Creature(PointF _Position, Color _Color, float _Size, int _seed, float _Health, float _Energy, Main _MainForm)
         {
             Position = _Position;
             Size = _Size;
@@ -82,6 +97,7 @@ namespace Life_V0._1
             Randomer = _seed;
             Health = _Health;
             Energy = _Energy;
+            MainForm = _MainForm;
             DoOnStart();
         }
 
@@ -94,6 +110,7 @@ namespace Life_V0._1
             tempColor = Color;
             CurEnergy = Energy;
             CurHealth = Health;
+            tempView = ViewLength;
         }
 
         #endregion
@@ -168,6 +185,18 @@ namespace Life_V0._1
                     new SolidBrush(Color.White),
                     Position,
                     new StringFormat());
+
+                g.DrawString("E: " + CurEnergy,
+                    new Font("Arial", 7),
+                    new SolidBrush(Color.White),
+                    new PointF(Position.X, Position.Y + 10),
+                    new StringFormat());
+
+                g.DrawString("Eat: " + eat,
+                    new Font("Arial", 7),
+                    new SolidBrush(Color.White),
+                    new PointF(Position.X, Position.Y + 20),
+                    new StringFormat());
             }
         }
 
@@ -185,8 +214,8 @@ namespace Life_V0._1
 
         public void AddPointOfInterest(PointF _Point, float _Force)
         {
-            PointOfInterest myPoint = new PointOfInterest(_Point, _Force);
-            InterestingPoints.Add(myPoint);
+            //PointOfInterest myPoint = new PointOfInterest(_Point, _Force);
+            //InterestingPoints.Add(myPoint);
         }
 
         public void ClearPointsOfInterest()
@@ -204,15 +233,103 @@ namespace Life_V0._1
 
         public void CheckHelath()
         {
+            if (age >= LifeDuration)
+                Dead = true;
+
+            if (age >= matureAge)
+            {
+                bool clone = r1.NextDouble() > 0.95;
+                if (clone)
+                {
+                    if (CurEnergy > 1.5 * Energy)
+                    {
+                        int sizeJump = 21 + r1.Next(-10, 10);
+
+                        if (Size >= sizeJump)
+                        {
+                            int children = r1.Next(5, MaxChildern);
+
+                            for (int i = 0; i < children; i++)
+                            {
+                                Creature child = new Creature(Position, tempColor, 20f / children, r1.Next(1000), Health + 0.01f, Energy + 0.01f, MainForm);
+
+                                child.BadForce += 0.01f;
+                                child.GoodForce += 0.01f;
+                                child.EatSpeed += 0.01f;
+                                child.MinSpeed += 0.01f;
+                                child.MaxSpeed += 0.01f;
+                                child.MaxForce += 0.01f;
+                                child.LifeDuration += 1;
+                                child.MaxChildern += 1;
+                                child.MaxSize += 1;
+                                child.gorwSpeed += 0.1f;
+
+                                if (r1.NextDouble() > 0.8)
+                                    child.Health += r1.Next(-1000, 1000) / 1000f;
+
+                                if (r1.NextDouble() > 0.8)
+                                    child.Energy += r1.Next(-1000, 1000) / 1000f;
+
+                                if (r1.NextDouble() > 0.8)
+                                    child.GoodForce += r1.Next(-1000, 1000) / 1000f;
+
+                                if (r1.NextDouble() > 0.8)
+                                    child.BadForce += r1.Next(-1000, 1000) / 1000f;
+
+                                if (r1.NextDouble() > 0.8)
+                                    child.MinSpeed += r1.Next(-1000, 1000) / 1000f;
+
+                                if (r1.NextDouble() > 0.8)
+                                    child.MaxForce += r1.Next(-1000, 1000) / 1000f;
+
+                                if (r1.NextDouble() > 0.8)
+                                    child.MaxSpeed += r1.Next(-1000, 1000) / 1000f;
+
+                                if (r1.NextDouble() > 0.8)
+                                    child.MaxForce += r1.Next(-1000, 1000) / 1000f;
+
+                                if (r1.NextDouble() > 0.8)
+                                    child.EatSpeed += r1.Next(-1000, 1000) / 1000f;
+
+                                if (r1.NextDouble() > 0.8)
+                                    child.LifeDuration += r1.Next(-10, 10);
+
+                                if (r1.NextDouble() > 0.8)
+                                    child.MaxChildern += r1.Next(-2, 10);
+
+                                MainForm.AddCreature(child);
+                            }
+
+                            Size -= sizeJump;
+
+                            if (Size <= 0)
+                                Dead = true;
+
+                            CurEnergy -= 0.5f * Energy;
+                        }
+                    }
+                }
+            }
+
             if (CurEnergy < 0.25 * Energy)
                 eat = true;
 
-            if (CurEnergy > 0.75 * Energy)
-                eat = false;
+
+            if (stopEat)
+            {
+                if (CurEnergy > 0.75 * Energy + r1.NextDouble())
+                {
+                    eat = false;
+                    stopEat = false;
+                }
+            }
 
             if (CurEnergy < 0.2 * Energy)
             {
-                hSub = 0.001f;
+                if (age > matureAge * 0.5)
+                    hSub = 0.001f;
+                else
+                    hSub = 0;
 
                 if (CurHealth <= Health)
                 {
@@ -248,13 +365,13 @@ namespace Life_V0._1
             {
                 CurHealth += 0.01f;
 
-                if (Size < 50)
-                    Size += 0.001f;
+                if (Size < MaxSize)
+                    Size += gorwSpeed + CurEnergy * 0.001f;
 
                 if (MinSpeed < MaxSpeed)
-                    MinSpeed += 0.0001f;
+                    MinSpeed += 0.001f;
 
-                ViewLength += 0.00001f;
+                ViewLength += 0.0001f;
 
             }
 
@@ -263,6 +380,8 @@ namespace Life_V0._1
 
         public void Move()
         {
+            age++;
+
             SteeringVectors.Clear();
 
             shuffle = true;
@@ -285,20 +404,51 @@ namespace Life_V0._1
                         force.Normalise();
 
                         f = 10 * (Size / (d * d));
-                        s = (float)(InterestingPoints[i].Force * f);
+                        s = (float)(InterestingPoints[i].Value * f);
 
-                        if (d < Size - Size * 0.5f)
+                        if (InterestingPoints[i].IsGood)
+                            s = s * GoodForce;
+                        else
+                            s = s * BadForce;
+
+                        if(d < 1 && InterestingPoints[i].Value < 0.5)
+                            InterestingPoints.RemoveAt(i);
+
+                        if (d < Size + InterestingPoints[i].Value)
                         {
                             if (DeletePointOfInterestOnEntry)
                             {
-                                InterestingPoints.RemoveAt(i);
-                                CurEnergy += 0.5f;
+                                //float bite = EatSpeed + Size / 100.0f + Math.Abs(Energy - CurEnergy) * 0.3f;
+                                //float bite = EatSpeed + Math.Abs(Energy - CurEnergy) * 0.01f;
+                                float bite = EatSpeed;
+
+                                if (InterestingPoints[i].Value < EatSpeed)
+                                    bite = InterestingPoints[i].Value;
+
+                                if (InterestingPoints[i].IsGood)
+                                    CurEnergy += bite;
+                                else
+                                {
+                                    CurEnergy -= bite;
+                                    CurHealth -= bite / 10;
+                                }
+
+                                if (InterestingPoints[i].Value - EatSpeed < 0)
+                                    InterestingPoints.RemoveAt(i);
+
+                                if (bite < 0)
+                                    bite = -bite;
+
+                                InterestingPoints[i].Value = InterestingPoints[i].Value - bite;
+
+                                if (r1.NextDouble() > 0.55)
+                                    stopEat = true;
                             }
                             else
                                 force.Mul(0);
                         }
                         else
-                            force.Mul(InterestingPoints[i].Force * f);
+                            force.Mul(s);
 
                         SteeringVectors.Add(force);
                     }
@@ -311,30 +461,32 @@ namespace Life_V0._1
             {
                 if (ShufflePoint == null)
                 {
-                    PointF shuffleP;
+                    //Rectangle r = new Rectangle(Main.Border.X + 100, Main.Border.Y + 100, Main.Border.Width - 100, Main.Border.Height - 100);
+                    PointF shuffleP = new PointF(0,0);
 
                     if (eat)
                     {
-                        while (true)
+                        for (int i = 0; i < 1000; i++)
                         {
                             shuffleP = new PointF(r1.Next((int)(Position.X - (ViewLength + Size + 100)), (int)(Position.X + ViewLength + Size + 100)), r1.Next((int)(Position.Y - (ViewLength + Size + 100)), (int)(Position.Y + ViewLength + Size + 100)));
 
-                            if (Main.Border.Contains((int)shuffleP.X, (int)shuffleP.Y))
+                            if (Main.ShuffleBorder.Contains((int)shuffleP.X, (int)shuffleP.Y))
                                 break;
                         }
                     }
                     else
                     {
-                        while (true)
+                        for (int i = 0; i < 1000; i++)
                         {
                             shuffleP = new PointF(r1.Next((int)(Position.X - (ViewLength + Size)), (int)(Position.X + ViewLength + Size)), r1.Next((int)(Position.Y - (ViewLength + Size)), (int)(Position.Y + ViewLength + Size)));
 
-                            if (GetDistance(Position, shuffleP) < ViewLength + Size && Main.Border.Contains((int)shuffleP.X, (int)shuffleP.Y))
+                            if (GetDistance(Position, shuffleP) < ViewLength + Size && Main.ShuffleBorder.Contains((int)shuffleP.X, (int)shuffleP.Y))
                                 break;
                         }
                     }
 
-                    ShufflePoint = new PointOfInterest(shuffleP, (float)r1.NextDouble());
+                    if(shuffleP.X != 0 && shuffleP.Y != 0)
+                        ShufflePoint = new PointOfInterest(shuffleP);
                 }
                 else
                 {

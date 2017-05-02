@@ -3,7 +3,7 @@ using System.Drawing;
 
 namespace Life_V0._1
 {
-    class Vector
+    public partial class Vector
     {
         public PointF Start { get; set; } // Translated start postion
         public PointF End { get; set; } // End of vector relative to orygin

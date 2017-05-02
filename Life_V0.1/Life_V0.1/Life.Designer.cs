@@ -40,6 +40,7 @@
             this.labelHealth = new System.Windows.Forms.Label();
             this.labelEnergy = new System.Windows.Forms.Label();
             this.labelPopulation = new System.Windows.Forms.Label();
+            this.labelAge = new System.Windows.Forms.Label();
             this.SuspendLayout();
             // 
             // RefTimer
@@ -76,13 +77,14 @@
             // 
             // backgroundWorkerCalculations
             // 
+            this.backgroundWorkerCalculations.WorkerSupportsCancellation = true;
             this.backgroundWorkerCalculations.DoWork += new System.ComponentModel.DoWorkEventHandler(this.backgroundWorkerCalculations_DoWork);
             this.backgroundWorkerCalculations.RunWorkerCompleted += new System.ComponentModel.RunWorkerCompletedEventHandler(this.backgroundWorkerCalculations_RunWorkerCompleted);
             // 
             // labelSpeed
             // 
             this.labelSpeed.AutoSize = true;
-            this.labelSpeed.Location = new System.Drawing.Point(356, 9);
+            this.labelSpeed.Location = new System.Drawing.Point(352, 9);
             this.labelSpeed.Name = "labelSpeed";
             this.labelSpeed.Size = new System.Drawing.Size(55, 17);
             this.labelSpeed.TabIndex = 4;
@@ -102,7 +104,7 @@
             // labelHealth
             // 
             this.labelHealth.AutoSize = true;
-            this.labelHealth.Location = new System.Drawing.Point(502, 9);
+            this.labelHealth.Location = new System.Drawing.Point(494, 9);
             this.labelHealth.Name = "labelHealth";
             this.labelHealth.Size = new System.Drawing.Size(72, 17);
             this.labelHealth.TabIndex = 6;
@@ -112,7 +114,7 @@
             // labelEnergy
             // 
             this.labelEnergy.AutoSize = true;
-            this.labelEnergy.Location = new System.Drawing.Point(665, 9);
+            this.labelEnergy.Location = new System.Drawing.Point(653, 9);
             this.labelEnergy.Name = "labelEnergy";
             this.labelEnergy.Size = new System.Drawing.Size(60, 17);
             this.labelEnergy.TabIndex = 7;
@@ -128,12 +130,23 @@
             this.labelPopulation.TabIndex = 8;
             this.labelPopulation.Text = "Population: ";
             // 
+            // labelAge
+            // 
+            this.labelAge.AutoSize = true;
+            this.labelAge.Location = new System.Drawing.Point(800, 9);
+            this.labelAge.Name = "labelAge";
+            this.labelAge.Size = new System.Drawing.Size(53, 17);
+            this.labelAge.TabIndex = 9;
+            this.labelAge.Text = "Oldest: ";
+            this.labelAge.Visible = false;
+            // 
             // Main
             // 
             this.AutoScaleDimensions = new System.Drawing.SizeF(7F, 17F);
             this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
             this.BackColor = System.Drawing.Color.Black;
             this.ClientSize = new System.Drawing.Size(1084, 611);
+            this.Controls.Add(this.labelAge);
             this.Controls.Add(this.labelPopulation);
             this.Controls.Add(this.labelEnergy);
             this.Controls.Add(this.labelHealth);
@@ -170,6 +183,7 @@
         private System.Windows.Forms.Label labelHealth;
         private System.Windows.Forms.Label labelEnergy;
         private System.Windows.Forms.Label labelPopulation;
+        private System.Windows.Forms.Label labelAge;
     }
 }
 

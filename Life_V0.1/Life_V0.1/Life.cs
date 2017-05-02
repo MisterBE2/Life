@@ -19,10 +19,18 @@ namespace Life_V0._1
         public static int WindowYShift = 39; // How much window border takse from working area
 
         public static Rectangle Border; // Declares border of life (gray square near edges)
-        public int BorderSize = 10; // Size of border
+        public int BorderSize = 20; // Size of border
+
+        public static Rectangle ShuffleBorder;
+        public int ShuffleBorderSize = 50;
 
         float size, speed, health, energy;
+        long age;
+
         PointF pSize, pSpeed, pHealth, pEnergy;
+
+        List<PointF> pAge = new List<PointF>();
+
         bool DrawStatistics = false;
         bool DrawHealth = false;
 
@@ -34,7 +42,7 @@ namespace Life_V0._1
         #endregion
 
         TheEngine gBuf;
-        List<PointOfInterest> GlobalPointOfInterest = new List<PointOfInterest>();
+        public List<PointOfInterest> GlobalPointOfInterest = new List<PointOfInterest>();
 
         #region FPS Counter
 
@@ -51,8 +59,9 @@ namespace Life_V0._1
         #region Tests
 
         List<Creature> Creatures = new List<Creature>();
+        List<Creature> CreaturesToAdd = new List<Creature>();
 
-        Random r1 = new Random(50);
+        Random r1 = new Random(47);
         Random f1 = new Random(100);
 
         Vector tempV1 = new Vector(0, 0);
@@ -73,37 +82,157 @@ namespace Life_V0._1
 
             UpdateBorder();
 
-            for (int i = 0; i < 1000; i++)
+            for (int i = 0; i < 500; i++)
             {
-                float x = (float)(r1.Next(Border.X, Border.X + Border.Width));
-                float y = (float)(r1.Next(Border.Y, Border.X + Border.Height));
-
-                GlobalPointOfInterest.Add(new PointOfInterest(new PointF(x, y), (float)(r1.NextDouble())));
+                AddRandomFood();
             }
 
-            for (int i = 0; i < 10000; i++)
+            for (int i = GlobalPointOfInterest.Count-1; i >= 0; i--)
             {
-                Creature tempCreature;
-
-                float x = (float)(r1.Next(Border.X, Border.X + Border.Width));
-                float y = (float)(r1.Next(Border.Y, Border.X + Border.Height));
-
-                tempCreature = new Creature(
-                    new PointF(x, y),
-                    Color.FromArgb(r1.Next(255), r1.Next(255), r1.Next(255)),
-                    r1.Next(5, 20),
-                    r1.Next(0, Creatures.Count),
-                    (float)(r1.Next(1000) / 1000f),
-                    (float)(r1.Next(1000) / 1000f)
-                    );
-
-                tempCreature.eSub = (float)(r1.Next(1000) / 1000f);
-
-                tempCreature.MaxSpeed = (float)(r1.Next(1000, 5000) / 1000f);
-                tempCreature.InterestingPoints = GlobalPointOfInterest;
-
-                Creatures.Add(tempCreature);
+                if (!Border.Contains(new Point((int)(GlobalPointOfInterest[i].Point.X), (int)(GlobalPointOfInterest[i].Point.Y))))
+                    GlobalPointOfInterest.RemoveAt(i);
             }
+
+            for (int i = 0; i < 500; i++)
+            {
+                AddRandomCreature();
+            }
+        }
+
+        public void AddRandomCreature()
+        {
+            Creature tempCreature;
+
+            float x = (float)(r1.Next(Border.X, Border.X + Border.Width));
+            float y = (float)(r1.Next(Border.Y, Border.X + Border.Height));
+
+            tempCreature = new Creature(
+                new PointF(x, y),
+                Color.FromArgb(r1.Next(255), r1.Next(255), r1.Next(255)),
+                r1.Next(5, 20),
+                r1.Next(0, Creatures.Count),
+                (float)(r1.Next(1000) / 1000f),
+                (float)(r1.Next(1000) / 1000f),
+                this
+                );
+
+            tempCreature.eSub = r1.Next(100) / 10000f;
+            tempCreature.GoodForce = r1.Next(-1000, 1000) / 1000f;
+            tempCreature.BadForce = r1.Next(-1000, 1000) / 1000f;
+            tempCreature.MaxSize = r1.Next(70);
+            tempCreature.gorwSpeed = r1.Next(100) / 10000f;
+            //tempCreature.BadForce = -100;
+            tempCreature.ViewLength = r1.Next((int)tempCreature.Size, 100);
+            tempCreature.MaxSpeed = (float)(r1.Next(1000, 5000) / 1000f);
+            tempCreature.matureAge = r1.Next(600, 2000);
+            tempCreature.LifeDuration = r1.Next(1000, 10000);
+            tempCreature.MaxChildern = r1.Next(1, 20);
+            tempCreature.InterestingPoints = GlobalPointOfInterest;
+
+            CreaturesToAdd.Add(tempCreature);
+        }
+
+        public void AddRandomCreature(PointF Position)
+        {
+            Creature tempCreature;
+
+            float x = (float)(r1.Next(Border.X, Border.X + Border.Width));
+            float y = (float)(r1.Next(Border.Y, Border.X + Border.Height));
+
+            tempCreature = new Creature(
+                Position,
+                Color.FromArgb(r1.Next(255), r1.Next(255), r1.Next(255)),
+                r1.Next(5, 20),
+                r1.Next(0, Creatures.Count),
+                (float)(r1.Next(1000) / 1000f),
+                (float)(r1.Next(1000) / 1000f),
+                this
+                );
+
+            tempCreature.eSub = r1.Next(100) / 10000f;
+            tempCreature.GoodForce = r1.Next(-1000, 1000) / 1000f;
+            tempCreature.BadForce = r1.Next(-1000, 1000) / 1000f;
+            tempCreature.MaxSize = r1.Next(70);
+            tempCreature.gorwSpeed = r1.Next(100) / 10000f;
+            //tempCreature.BadForce = -100;
+            tempCreature.ViewLength = r1.Next((int)tempCreature.Size, 100);
+            tempCreature.MaxSpeed = (float)(r1.Next(1000, 5000) / 1000f);
+            tempCreature.matureAge = r1.Next(600, 2000);
+            tempCreature.LifeDuration = r1.Next(1000, 10000);
+            tempCreature.MaxChildern = r1.Next(1, 20);
+            tempCreature.InterestingPoints = GlobalPointOfInterest;
+
+            CreaturesToAdd.Add(tempCreature);
+        }
+
+        public void AddRandomFood()
+        {
+            float x = (float)(r1.Next(Border.X, Border.X + Border.Width));
+            float y = (float)(r1.Next(Border.Y, Border.X + Border.Height));
+
+            bool type = r1.NextDouble() > 0.25;
+
+            if (r1.NextDouble() > 0.95)
+            {
+                float x2 = 0;
+                float y2 = 0;
+
+                for (int i = 0; i < r1.Next(3, 50); i++)
+                {
+                    for (int j = 0; j < 1000; j++)
+                    {
+                        x2 = r1.Next((int)(x - r1.Next(10, 100)), (int)(x + r1.Next(10, 100)));
+                        y2 = r1.Next((int)(y - r1.Next(10, 100)), (int)(y + r1.Next(10, 100)));
+
+                        if (Border.Contains(new Point((int)x2, (int)y2)))
+                            break;  
+                    }
+
+                    if (x2 != 0 && y2 != 0)
+                        GlobalPointOfInterest.Add(new PointOfInterest(new PointF(x2, y2), (float)(r1.NextDouble()), type, (float)(r1.NextDouble() * r1.Next(25, 80))));
+                }
+            }
+            else
+                GlobalPointOfInterest.Add(new PointOfInterest(new PointF(x, y), (float)(r1.NextDouble()), r1.NextDouble() > 0.25, (float)(r1.NextDouble() * r1.Next(2, 25))));
+        }
+
+        public void AddRandomFood(PointF Position)
+        {
+            bool type = r1.NextDouble() > 0.25;
+
+            if (r1.NextDouble() > 0.95)
+            {
+                float x2 = 0;
+                float y2 = 0;
+
+                for (int i = 0; i < r1.Next(3, 50); i++)
+                {
+                    for (int j = 0; j < 1000; j++)
+                    {
+                        x2 = r1.Next((int)(Position.X - r1.Next(10, 100)), (int)(Position.X + r1.Next(10, 100)));
+                        y2 = r1.Next((int)(Position.Y - r1.Next(10, 100)), (int)(Position.Y + r1.Next(10, 100)));
+
+                        if (Border.Contains(new Point((int)x2, (int)y2)))
+                            break;
+ 
+                    }
+
+                    if(x2 !=0 && y2 !=0)
+                        GlobalPointOfInterest.Add(new PointOfInterest(new PointF(x2, y2), (float)(r1.NextDouble()), type, (float)(r1.NextDouble() * r1.Next(25, 80))));
+                }
+            }
+            else
+                GlobalPointOfInterest.Add(new PointOfInterest(Position, (float)(r1.NextDouble()), r1.NextDouble() > 0.25, (float)(r1.NextDouble() * r1.Next(2, 25))));
+        }
+
+        public void AddCreature(PointF _Position, Color _Color, float _Size, int _Seed, float _Health, float _Energy)
+        {
+            CreaturesToAdd.Add(new Creature(_Position, _Color, _Size, _Seed, _Health, _Energy, this));
+        }
+
+        public void AddCreature(Creature creature)
+        {
+            CreaturesToAdd.Add(creature);
         }
 
         /// <summary>
@@ -147,6 +276,18 @@ namespace Life_V0._1
             Border = new Rectangle();
             Border.Location = new Point(BorderSize, BorderSize);
             Border.Size = new Size(Window.Width - BorderSize * 2, Window.Height - BorderSize * 2);
+
+            ShuffleBorder = new Rectangle();
+            ShuffleBorder.Location = new Point(ShuffleBorderSize, ShuffleBorderSize);
+            ShuffleBorder.Size = new Size(Window.Width - ShuffleBorderSize * 2, Window.Height - ShuffleBorderSize * 2);
+        }
+
+        public float GetDistance(PointF p1, PointF p2)
+        {
+            float dx = p2.X - p1.X;
+            float dy = p2.Y - p1.Y;
+
+            return (float)Math.Sqrt(dx * dx + dy * dy);
         }
 
         #region Rendering
@@ -174,15 +315,26 @@ namespace Life_V0._1
 
             #region Calculations
 
+            if(CreaturesToAdd.Count > 0)
+            {
+                for (int i = 0; i < CreaturesToAdd.Count; i++)
+                {
+                    Creatures.Add(CreaturesToAdd[i]);
+                }
+                CreaturesToAdd.Clear();
+            }
+
             size = 0;
             speed = 0;
             health = 0;
             energy = 0;
+            age = 0;
 
             pSize = labelSize.Location;
             pSpeed = labelSpeed.Location;
             pHealth = labelHealth.Location;
             pEnergy = labelEnergy.Location;
+            //pAge.Clear();
 
             for (int i = Creatures.Count - 1; i >= 0; i--)
             {
@@ -217,18 +369,66 @@ namespace Life_V0._1
                             energy = Creatures[i].CurEnergy;
                             pEnergy = Creatures[i].Position;
                         }
+
+                        if (Creatures[i].age > age)
+                        {
+                            age = Creatures[i].age;
+                            //pAge.Add(Creatures[i].Position);
+                        }
+
                     }
 
                 }
                 else
                 {
-                    for (int z = 0; z < Creatures[i].Size; z++)
-                    {
-                        GlobalPointOfInterest.Add(new PointOfInterest(new PointF(Creatures[i].Position.X + r1.Next(-10, 10), Creatures[i].Position.Y + r1.Next(-10, 10)), (float)r1.NextDouble()));
-                    }
 
+                    //GlobalPointOfInterest.Add(new PointOfInterest(new PointF(Creatures[i].Position.X + r1.Next(-10, 10), Creatures[i].Position.Y + r1.Next(-10, 10)), (float)r1.NextDouble(), true, Creatures[i].Size));
+
+                    bool newPoint = true;
+
+                    /*
+                    for (int j = 0; j < GlobalPointOfInterest.Count; j++)
+                    {
+                        float d = GetDistance(Creatures[i].Position, GlobalPointOfInterest[j].Point);
+
+                        if (d <= GlobalPointOfInterest[j].Value + Creatures[i].Size)
+                        {
+                            newPoint = false;
+
+                            if (r1.NextDouble() > 0.5)
+                                GlobalPointOfInterest[j].Value += Creatures[i].Size;
+                            else
+                                GlobalPointOfInterest[j].Value -= Creatures[i].Size;
+
+                            break;
+                        }
+                    }
+                    */
+
+                    if (newPoint)
+                        GlobalPointOfInterest.Add(new PointOfInterest(Creatures[i].Position, Creatures[i].age / 10000f, r1.NextDouble() > 0.35, Creatures[i].Size * 0.85f));
 
                     Creatures.RemoveAt(i);
+                }
+            }
+
+            if (GlobalPointOfInterest.Count < Creatures.Count)
+            {
+                if (r1.NextDouble() > 0.8)
+                {
+                    float x = (float)(r1.Next(Border.X, Border.X + Border.Width));
+                    float y = (float)(r1.Next(Border.Y, Border.X + Border.Height));
+
+                    GlobalPointOfInterest.Add(new PointOfInterest(new PointF(x, y), (float)(r1.NextDouble()), r1.NextDouble() > 0.2, (float)(r1.NextDouble()) * r1.Next(1, 10)));
+                }
+            }
+
+
+            for (int i = 0; i < GlobalPointOfInterest.Count; i++)
+            {
+                if (GlobalPointOfInterest[i].Value > 150)
+                {
+                    GlobalPointOfInterest[i].Value = 150;
                 }
             }
 
@@ -246,8 +446,6 @@ namespace Life_V0._1
         /// <param name="e"></param>
         private void RefTimer_Tick(object sender, EventArgs e)
         {
-            RefTimer.Stop();
-
             labelPopulation.Text = "Population: " + Creatures.Count;
 
             //if(!workers[workers.Count-1].bg.IsBusy)
@@ -255,6 +453,7 @@ namespace Life_V0._1
 
             if (!backgroundWorkerCalculations.IsBusy)
                 backgroundWorkerCalculations.RunWorkerAsync();
+
 
             this.Refresh();
         }
@@ -283,7 +482,12 @@ namespace Life_V0._1
                 {
                     try
                     {
-                        gBuf.buffer.Graphics.DrawEllipse(new Pen(Color.FromArgb(222, 0, 255), 2), GlobalPointOfInterest[z].Point.X - 3, GlobalPointOfInterest[z].Point.Y - 3, 6, 6);
+                        Color c = Color.DarkRed;
+
+                        if (GlobalPointOfInterest[z].IsGood)
+                            c = Color.DarkGreen;
+
+                        gBuf.buffer.Graphics.FillEllipse(new SolidBrush(c), GlobalPointOfInterest[z].Point.X - GlobalPointOfInterest[z].Value / 2, GlobalPointOfInterest[z].Point.Y - GlobalPointOfInterest[z].Value / 2, GlobalPointOfInterest[z].Value, GlobalPointOfInterest[z].Value);
                     }
                     catch
                     {
@@ -328,6 +532,16 @@ namespace Life_V0._1
                 {
                     labelEnergy.Text = "Most fit: " + energy;
                     gBuf.buffer.Graphics.DrawLine(new Pen(Color.Green), labelEnergy.Location, pEnergy);
+                }
+
+                if (pAge.Count > 0)
+                {
+                    labelAge.Text = "Oldest: " + age;
+
+                    for (int i = 0; i < pAge.Count; i++)
+                    {
+                        gBuf.buffer.Graphics.DrawLine(new Pen(Color.Green), labelAge.Location, pAge[i]);
+                    }
                 }
             }
 
@@ -393,38 +607,13 @@ namespace Life_V0._1
 
             if (e.Button == MouseButtons.Left)
             {
-                GlobalPointOfInterest.Add(new PointOfInterest(mousePos, (float)(r1.NextDouble())));
-
-                for (int i = 0; i < Creatures.Count; i++)
-                {
-                    Creatures[i].InterestingPoints = GlobalPointOfInterest;
-                }
+                AddRandomFood(mousePos);
             }
             else if (e.Button == MouseButtons.Right)
             {
-                if (Creatures.Count > 0)
+                for (int i = 0; i < 10; i++)
                 {
-                    for (int i = 0; i < Creatures.Count; i++)
-                    {
-                        Creatures[i].Position = mousePos;
-                    }
-                }
-                else
-                {
-                    Creature tempCreature;
-                    tempCreature = new Creature(
-                        mousePos,
-                        Color.FromArgb(r1.Next(255), r1.Next(255), r1.Next(255)),
-                        r1.Next(5, 20),
-                        r1.Next(0, Creatures.Count),
-                        1,
-                        1
-                        );
-
-                    tempCreature.MaxSpeed = (float)(r1.Next(1000, 5000) / 1000f);
-                    tempCreature.InterestingPoints = GlobalPointOfInterest;
-
-                    Creatures.Add(tempCreature);
+                    AddRandomCreature(mousePos);
                 }
             }
             else if (e.Button == MouseButtons.Middle)
@@ -478,6 +667,7 @@ namespace Life_V0._1
                     labelSpeed.Visible = false;
                     labelHealth.Visible = false;
                     labelEnergy.Visible = false;
+                    labelAge.Visible = false;
                     DrawStatistics = false;
                 }
                 else
@@ -486,6 +676,7 @@ namespace Life_V0._1
                     labelSpeed.Visible = true;
                     labelHealth.Visible = true;
                     labelEnergy.Visible = true;
+                    labelAge.Visible = true;
                     DrawStatistics = true;
                 }
             }
@@ -495,6 +686,10 @@ namespace Life_V0._1
                     DrawHealth = false;
                 else
                     DrawHealth = true;
+            }
+            else if (e.KeyCode == Keys.Escape)
+            {
+                backgroundWorkerCalculations.CancelAsync();
             }
         }
 

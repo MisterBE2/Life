@@ -8,7 +8,7 @@ using System.Windows.Forms;
 
 namespace Life_V0._1
 {
-    class TheEngine
+    public partial class TheEngine
     {
         // This class should give flicker free graphics. It is slow, but "works".
 
