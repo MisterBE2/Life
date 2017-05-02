@@ -6,7 +6,7 @@ For this task I'll use Microsoft Visual C# and their Visual Studio. I'm begginer
 
 <p><h1> If you want to run the application without Visual Studio go to <b>Life_V0.1/Life_V0.1/bin/Debug/Life_V0.1.exe</b></h1>
 
-<center><img src="https://raw.githubusercontent.com/MisterBE2/Life/master/Life_progress_02.PNG" alt="The program"></center>
+<center><img src="https://raw.githubusercontent.com/MisterBE2/Life/master/Life_progress_03.PNG" alt="The program"></center>
 
 <p><h2> Currently working on: <b>"DNA"</b></h2>
 
