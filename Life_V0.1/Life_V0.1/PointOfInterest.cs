@@ -10,6 +10,8 @@ namespace Life_V0._1
         public bool IsGood { get; set; } // Is this point good
         public bool Visible { get; set; } // Is this point visible
 
+        public bool ToRemove = false;
+
         public PointOfInterest(PointF _Point, float _Force, bool _Good, float _Value)
         {
             Point = _Point;
@@ -35,6 +37,15 @@ namespace Life_V0._1
             Visible = true;
             Value = 0.5f;
             IsGood = true;
+        }
+
+        public void Consume(float val)
+        {
+
+            Value = Value - val;
+
+            if (val < 0)
+                ToRemove = true;
         }
     }
 }
