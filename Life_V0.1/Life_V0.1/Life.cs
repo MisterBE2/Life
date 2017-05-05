@@ -25,15 +25,15 @@ namespace Life_V0._1
 
         TheEngine gBuf;
 
-        #region FPS Counter
+        #region CPS Counter
 
         DateTime last = DateTime.Now;
-        byte frames;
-        byte lastFrames;
 
         Stopwatch gStopwatch = new Stopwatch();
 
-        int fps, cTime, rTime;
+        float cps = 0, cTime, rTime;
+        byte displayDelay = 100; // How many loop before update
+        byte curLoop = 0;
 
         #endregion
 
@@ -60,26 +60,19 @@ namespace Life_V0._1
         }
 
         /// <summary>
-        /// Calculates FPS
+        /// Calculates ammount of cycles done in one secon
         /// </summary>
         /// <returns></returns>
-        public double GetFPS()
+        public double GetCPS()
         {
             TimeSpan ts = DateTime.Now.Subtract(last);
+            last = DateTime.Now;
 
-            if (lastFrames > frames)
-            {
-                last = DateTime.Now;
-                frames = 0;
-                lastFrames = 0;
-            }
-
-            lastFrames = frames;
-
-            if (ts.TotalSeconds > 0)
-                return frames / ts.TotalSeconds;
+            if (ts.Milliseconds > 0)
+                return 1000 / ts.Milliseconds;
             else
                 return -1;
+
         }
 
         /// <summary>
@@ -102,13 +95,13 @@ namespace Life_V0._1
             gStopwatch.Reset();
             gStopwatch.Start();
 
-            fps = (int)GetFPS();
+            cps = (float)GetCPS();
 
             #region Calculations
 
             if (god != null)
             {
-                god.Move();
+
             }
 
             #endregion
@@ -151,13 +144,20 @@ namespace Life_V0._1
 
             gBuf.RenderBuffer(e.Graphics);
 
-            frames++;
-
             gStopwatch.Stop();
+
             TimeSpan ts = gStopwatch.Elapsed;
-            labelRender.Text = "R: " + ts.Milliseconds + " ms";
-            labelFPS.Text = "FPS: " + fps;
-            labelClaculations.Text = "C: " + cTime + " ms";
+
+            curLoop++;
+
+            if (curLoop >= displayDelay)
+            {
+                curLoop = 0;
+
+                labelRender.Text = "R: " + ts.Milliseconds + " ms";
+                labelFPS.Text = "CPS: " + cps; // Cycles per second
+                labelClaculations.Text = "C: " + cTime + " ms";
+            }
 
             RefTimer.Start();
         }
@@ -214,12 +214,10 @@ namespace Life_V0._1
                 {
                     god = new Creature(mousePos);
                 }
-                else
-                    god.target.Add(mousePos);
             }
             else if (e.Button == MouseButtons.Middle)
             {
-                god.target.Clear();
+
             }
             else if (e.Button == MouseButtons.Right)
             {
