@@ -145,7 +145,7 @@
             this.AutoScaleDimensions = new System.Drawing.SizeF(7F, 17F);
             this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
             this.BackColor = System.Drawing.Color.Black;
-            this.ClientSize = new System.Drawing.Size(1484, 961);
+            this.ClientSize = new System.Drawing.Size(484, 461);
             this.Controls.Add(this.labelAge);
             this.Controls.Add(this.labelPopulation);
             this.Controls.Add(this.labelEnergy);

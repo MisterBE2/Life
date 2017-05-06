@@ -18,12 +18,293 @@ namespace Life_V0._1
         public static int WindowXShift = 19; // How much window border takse from working area
         public static int WindowYShift = 39; // How much window border takse from working area
 
+        TheEngine gBuf;
 
-        #region Grid
+        #region Delete!
+
+        bool pointMouse = false;
 
         #endregion
 
-        TheEngine gBuf;
+        #region Grid
+
+        List<Chunk> Chunks = new List<Chunk>();
+        int chunkSize = 100; // How many blocks are in chunk
+        int[] chunksAmmount = { 15, 7 };
+        bool drawChunks = false;
+        bool drawLitChunks = false; // Tells protram if it need to bother filling active chunks
+        bool drawChunkIndex = false;
+
+        /// <summary>
+        /// Adds new chunk
+        /// </summary>
+        /// <param name="chunk">Chunk to add</param>
+        public void AddChunk(Chunk chunk)
+        {
+            Chunks.Add(chunk);
+        }
+
+        /// <summary>
+        /// Initialises all chinks
+        /// </summary>
+        public void InitialiseGrid()
+        {
+            for (int i = 0; i < chunksAmmount[1]; i++)
+            {
+                int y = chunkSize * i;
+
+                for (int j = 0; j < chunksAmmount[0]; j++)
+                {
+                    Rectangle chunkBox = new Rectangle();
+                    chunkBox.Location = new Point(chunkSize * j, y);
+                    chunkBox.Size = new Size(chunkSize, chunkSize);
+
+                    AddChunk(new Chunk(chunkBox, new Point(j, i)));
+                }
+            }
+        }
+
+        /// <summary>
+        /// Returns all chunk rectangles / areas
+        /// </summary>
+        /// <returns></returns>
+        public Rectangle[] GetChunkRectangles()
+        {
+            Rectangle[] r = new Rectangle[Chunks.Count];
+
+            for (int i = 0; i < Chunks.Count; i++)
+                r[i] = Chunks[i].chunk;
+
+            return r;
+        }
+
+        /// <summary>
+        /// Draws chunks
+        /// </summary>
+        /// <param name="g">Graphic buffer to store rendered information</param>
+        /// <param name="drawLit">Decides if it needs to draw active chunks</param>
+        public void DrawChunks(Graphics g, bool drawLit)
+        {
+            if (drawLit)
+            {
+                foreach (Chunk chunk in Chunks)
+                {
+                    if (chunk.isLit)
+                        g.FillRectangle(new SolidBrush(Color.LightGray), chunk.chunk);
+                    else if (chunk.isSearched)
+                        g.FillRectangle(new SolidBrush(Color.DarkRed), chunk.chunk);
+                    else
+                        g.DrawRectangle(new Pen(Color.Gray), chunk.chunk);
+                }
+            }
+            else
+                g.DrawRectangles(new Pen(Color.Gray), GetChunkRectangles());
+
+            if (drawChunkIndex)
+            {
+                for (int i = 0; i < GetChunksCount(); i++)
+                {
+                    g.DrawString(
+                       "X:" + Chunks[i].index.X + " Y:" + Chunks[i].index.Y + " I:" + i,
+                       new Font("Arial", 10),
+                       new SolidBrush(Color.LightGreen),
+                       Chunks[i].chunk.Location
+                    );
+                }
+            }
+        }
+
+        /// <summary>
+        /// Returns total size of chunk grid
+        /// </summary>
+        /// <returns></returns>
+        public Size GetTotalChunkSize()
+        {
+            Size s = new Size(0, 0);
+
+            if (Chunks.Count > 0)
+            {
+                Chunk lastC = Chunks[Chunks.Count - 1];
+                s = new Size(lastC.chunk.X + lastC.chunk.Width, lastC.chunk.Y + lastC.chunk.Height);
+            }
+
+            return s;
+        }
+
+        /// <summary>
+        /// Checks if creature is assigned to any chunks
+        /// </summary>
+        /// <param name="creature">Creature to check</param>
+        /// <returns></returns>
+        public bool CheckAllChunks(Creature creature)
+        {
+            bool result = false;
+
+            foreach (Chunk chunk in Chunks)
+            {
+                if (chunk.ContainAnyCreature())
+                {
+                    if (chunk.ContainCreature(creature))
+                    {
+                        result = true;
+                        break;
+                    }
+                }
+            }
+
+            return result;
+        }
+
+        /// <summary>
+        /// Check if creature is on almost all cheunks
+        /// </summary>
+        /// <param name="creature">Creature to check</param>
+        /// <param name="skip">Which chunks should be skipped</param>
+        /// <returns></returns>
+        public bool CheckChunks(Creature creature, List<Chunk> skip)
+        {
+            bool result = false;
+
+            foreach (Chunk chunk in Chunks)
+            {
+                if (skip != null)
+                {
+                    int temIndex = skip.BinarySearch(chunk);
+
+                    if (temIndex < 0)
+                        if (!chunk.ContainAnyCreature())
+                        {
+                            if (chunk.ContainCreature(creature))
+                            {
+                                result = true;
+                                break;
+                            }
+                        }
+                }
+                else
+                {
+                    if (!chunk.ContainAnyCreature())
+                    {
+                        if (chunk.ContainCreature(creature))
+                        {
+                            result = true;
+                            break;
+                        }
+                    }
+                }
+            }
+
+            return result;
+        }
+
+        /// <summary>
+        /// Checks if creature is inside given chunk area
+        /// </summary>
+        /// <param name="creature">Creature to check</param>
+        /// <param name="index">Chunk index</param>
+        /// <returns></returns>
+        public bool ChunkContainCreature(Creature creature, int index)
+        {
+            return Chunks[index].ContainCreature(creature);
+        }
+
+        /// <summary>
+        /// Returns chunk ammount
+        /// </summary>
+        /// <returns>Chunk count</returns>
+        public int GetChunksCount()
+        {
+            return Chunks.Count;
+        }
+
+        /// <summary>
+        /// Returns ammount of coolomns in curren chunk grid
+        /// </summary>
+        /// <returns>Colomns count</returns>
+        public int ChunksColumns()
+        {
+            return chunksAmmount[0];
+        }
+
+        /// <summary>
+        /// Assigns creature to all occupied chunks
+        /// </summary>
+        /// <param name="creature">Creature to be added</param>
+        public void AssignCreatureToChunk(Creature creature)
+        {
+            for (int i = 0; i < GetChunksCount(); i++)
+            {
+                Chunks[i].AddCreature(creature);
+            }
+        }
+
+        /// <summary>
+        /// Assigns creature to given chunk
+        /// </summary>
+        /// <param name="creature">Creature to be added</param>
+        /// <param name="chunk">Choosen chunk</param>
+        public void AssignCreatureToChunk(Creature creature, Chunk chunk)
+        {
+            int index = Chunks.BinarySearch(chunk);
+            Chunks[index].AddCreature(creature);
+        }
+
+        /// <summary>
+        /// Assigns creature to given chunk
+        /// </summary>
+        /// <param name="creature">Creature to be added</param>
+        /// <param name="cindex">Index of chunk</param>
+        public void AssignCreatureToChunk(Creature creature, int index)
+        {
+            Chunks[index].AddCreature(creature);
+        }
+
+        /// <summary>
+        /// Sets chunk search status to true
+        /// </summary>
+        /// <param name="state">Stato of status</param>
+        /// <param name="index">Chunk index</param>
+        public void SetChunkToSearch(bool state, int index)
+        {
+            Chunks[index].Searched(state);
+        }
+
+        /// <summary>
+        /// Tells if chunk is in the list
+        /// </summary>
+        /// <param name="chunk">Chunk to check</param>
+        /// <returns></returns>
+        public bool ContainChunk(Chunk chunk)
+        {
+            return Chunks.Contains(chunk);
+        }
+
+        /// <summary>
+        /// Returns chunk with given index
+        /// </summary>
+        /// <param name="index"></param>
+        /// <returns>Chunk on given index, else null</returns>
+        public Chunk GetChunk(int index)
+        {
+            if (index >= 0 && index <= GetChunksCount() - 1)
+                return Chunks[index];
+            else
+                return null;
+        }
+
+        /// <summary>
+        /// Clears all searh and lit flags
+        /// </summary>
+        public void ClearFlags()
+        {
+            for (int i = 0; i < GetChunksCount(); i++)
+            {
+                Chunks[i].Lit(false);
+                Chunks[i].Searched(false);
+            }
+        }
+
+        #endregion
 
         #region CPS Counter
 
@@ -31,15 +312,16 @@ namespace Life_V0._1
 
         Stopwatch gStopwatch = new Stopwatch();
 
-        float cps = 0, cTime, rTime;
-        byte displayDelay = 100; // How many loop before update
+        float cps = 0, cTime;
+        byte displayDelay = 10; // How many loops before update
         byte curLoop = 0;
 
         #endregion
 
         #region Ceatures
 
-        Creature god = null;
+        List<Creature> god = new List<Creature>();
+        Random r1 = new Random();
 
         #endregion
 
@@ -55,8 +337,26 @@ namespace Life_V0._1
                 gBuf = new TheEngine(this);
 
             UpdateWindowSize();
+            InitialiseGrid();
+
+            Size canvasNevSize = GetTotalChunkSize();
+
+            if (canvasNevSize != new Size(0, 0))
+                this.Size = new Size(canvasNevSize.Width + WindowXShift, canvasNevSize.Height + WindowYShift);
+
+            this.CenterToScreen();
 
             #endregion
+
+            for (int i = 0; i < 1; i++)
+            {
+                Creature g = new Creature(Window.Width / 2, Window.Height / 2, this);
+                g.UpdateSeed(r1.Next(1000));
+                g.target = g.GetRandomTarget();
+
+
+                god.Add(g);
+            }
         }
 
         /// <summary>
@@ -72,7 +372,6 @@ namespace Life_V0._1
                 return 1000 / ts.Milliseconds;
             else
                 return -1;
-
         }
 
         /// <summary>
@@ -99,9 +398,11 @@ namespace Life_V0._1
 
             #region Calculations
 
-            if (god != null)
+            for (int i = 0; i < god.Count; i++)
             {
-
+                god[i].Move();
+                god[i].UpdateChunks();
+                god[i].UpdatePosition();
             }
 
             #endregion
@@ -121,6 +422,8 @@ namespace Life_V0._1
             if (!backgroundWorkerCalculations.IsBusy)
                 backgroundWorkerCalculations.RunWorkerAsync();
 
+            // Claculations();
+
             this.Refresh();
         }
 
@@ -137,8 +440,19 @@ namespace Life_V0._1
 
             #region Buffer Insertions
 
-            if (god != null)
-                god.Draw(gBuf.buffer.Graphics);
+            if (drawChunks)
+                DrawChunks(gBuf.buffer.Graphics, drawLitChunks);
+
+            //TODO: Use chunks to make faster rendering!
+            for (int i = 0; i < god.Count; i++)
+            {
+                if (pointMouse)
+                {
+                    god[i].target = this.PointToClient(Cursor.Position);
+                }
+
+                god[i].Draw(gBuf.buffer.Graphics);
+            }
 
             #endregion
 
@@ -157,6 +471,7 @@ namespace Life_V0._1
                 labelRender.Text = "R: " + ts.Milliseconds + " ms";
                 labelFPS.Text = "CPS: " + cps; // Cycles per second
                 labelClaculations.Text = "C: " + cTime + " ms";
+                //ClearFlags();
             }
 
             RefTimer.Start();
@@ -206,22 +521,21 @@ namespace Life_V0._1
         /// <param name="e"></param>
         private void Main_MouseClick(object sender, MouseEventArgs e)
         {
-            Point mousePos = this.PointToClient(Cursor.Position);
+            PointF mousePos = this.PointToClient(Cursor.Position);
 
             if (e.Button == MouseButtons.Left)
             {
-                if (god == null)
-                {
-                    god = new Creature(mousePos);
-                }
+                for (int i = 0; i < god.Count; i++)
+                    god[i].target = mousePos;
             }
             else if (e.Button == MouseButtons.Middle)
             {
-
+                pointMouse = !pointMouse;
             }
             else if (e.Button == MouseButtons.Right)
             {
-                god.Position = mousePos;
+                for (int i = 0; i < god.Count; i++)
+                    god[i].Position = mousePos;
             }
 
         }
@@ -233,10 +547,18 @@ namespace Life_V0._1
         /// <param name="e"></param>
         private void Main_KeyUp(object sender, KeyEventArgs e)
         {
-            if (e.KeyCode == Keys.Q)
+            if (e.KeyCode == Keys.F1)
             {
+                drawChunks = !drawChunks;
+            }
+            else if (e.KeyCode == Keys.F2)
+            {
+                drawLitChunks = !drawLitChunks;
+            }
+            else if (e.KeyCode == Keys.F3)
+            {
+                drawChunkIndex = !drawChunkIndex;
             }
         }
-
     }
 }
